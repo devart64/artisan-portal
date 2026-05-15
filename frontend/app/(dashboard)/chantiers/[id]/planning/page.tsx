@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { ArrowLeft, Plus, Trash2, Share2, CheckCircle2, Circle, CalendarDays } from 'lucide-react'
@@ -18,11 +18,11 @@ import { formatDate } from '@/lib/utils'
 import type { Jalon } from '@/lib/types'
 
 interface PlanningPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default function PlanningPage({ params }: PlanningPageProps) {
-  const { id } = params
+  const { id } = use(params)
   const [jalons, setJalons] = useState<Jalon[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showDialog, setShowDialog] = useState(false)

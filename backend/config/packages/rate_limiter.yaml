@@ -1,0 +1,13 @@
+framework:
+    rate_limiter:
+        # General API limiter: 60 requests per sliding window of 1 minute.
+        portal_api:
+            policy: 'sliding_window'
+            limit: 60
+            interval: '1 minute'
+
+        # Login endpoint limiter: 10 attempts per fixed window of 1 minute.
+        auth_login:
+            policy: 'fixed_window'
+            limit: 10
+            interval: '1 minute'

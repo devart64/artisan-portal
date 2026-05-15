@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, use } from 'react'
 import Link from 'next/link'
 import { toast } from 'sonner'
 import { ArrowLeft, Send, MessageSquare } from 'lucide-react'
@@ -10,11 +10,11 @@ import { formatDateTime } from '@/lib/utils'
 import type { Message } from '@/lib/types'
 
 interface MessagesPageProps {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 export default function MessagesPage({ params }: MessagesPageProps) {
-  const { id } = params
+  const { id } = use(params)
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [content, setContent] = useState('')

@@ -2,10 +2,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { ArrowLeft, Camera } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { DropZone } from '@/components/shared/DropZone'
 import { apiFetch } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 import type { Photo } from '@/lib/types'
+import { PhotoGalleryUploader } from './PhotoGalleryUploader'
 
 interface PhotosPageProps {
   params: Promise<{ id: string }>
@@ -23,17 +23,6 @@ export default async function PhotosPage({ params }: PhotosPageProps) {
   const { id } = await params
   const photos = await getPhotos(id)
 
-  const uploadAction = async (files: File[]) => {
-    'use server'
-    const formData = new FormData()
-    files.forEach((file) => formData.append('photos', file))
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'}/api/chantiers/${id}/photos`,
-      { method: 'POST', body: formData },
-    )
-    if (!res.ok) throw new Error('Erreur lors du téléversement')
-  }
-
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -47,7 +36,7 @@ export default async function PhotosPage({ params }: PhotosPageProps) {
       </div>
 
       {/* Upload */}
-      <PhotoUploader chantierId={id} />
+      <PhotoGalleryUploader chantierId={id} />
 
       {/* Gallery */}
       {photos.length === 0 ? (
@@ -78,7 +67,9 @@ export default async function PhotosPage({ params }: PhotosPageProps) {
                       {photo.caption}
                     </p>
                   )}
-                  <p className="text-xs text-gray-400">{formatDate(photo.uploadedAt)}</p>
+                  <p className="text-xs text-gray-400">
+                    {formatDate(photo.uploadedAt)}
+                  </p>
                 </div>
               )}
             </div>
@@ -86,26 +77,5 @@ export default async function PhotosPage({ params }: PhotosPageProps) {
         </div>
       )}
     </div>
-  )
-}
-
-function PhotoUploader({ chantierId }: { chantierId: string }) {
-  const handleUpload = async (files: File[]) => {
-    const formData = new FormData()
-    files.forEach((file) => formData.append('photos', file))
-    const res = await fetch(`/api/chantiers/${chantierId}/photos`, {
-      method: 'POST',
-      body: formData,
-    })
-    if (!res.ok) throw new Error('Erreur lors du téléversement')
-  }
-
-  return (
-    <DropZone
-      onUpload={handleUpload}
-      multiple
-      label="Glissez vos photos ici"
-      accept={{ 'image/*': ['.jpg', '.jpeg', '.png', '.webp'] }}
-    />
   )
 }

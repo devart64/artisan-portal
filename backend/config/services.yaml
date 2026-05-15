@@ -48,3 +48,9 @@ services:
         arguments:
             $stripeSecretKey: '%env(STRIPE_SECRET_KEY)%'
             $stripeWebhookSecret: '%env(STRIPE_WEBHOOK_SECRET)%'
+
+    App\EventSubscriber\CorsSubscriber:
+        arguments:
+            $corsAllowOrigin: '%env(default::CORS_ALLOW_ORIGIN)%'
+        tags:
+            - { name: kernel.event_subscriber }

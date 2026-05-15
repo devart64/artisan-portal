@@ -16,6 +16,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: ChantierRepository::class)]
@@ -105,6 +106,7 @@ class Chantier
         $this->updatedAt = new \DateTimeImmutable();
     }
 
+    #[Groups(['chantier:read'])]
     public function getId(): Uuid
     {
         return $this->id;
@@ -121,6 +123,7 @@ class Chantier
         return $this;
     }
 
+    #[Groups(['chantier:read'])]
     public function getClient(): ?Client
     {
         return $this->client;
@@ -132,6 +135,7 @@ class Chantier
         return $this;
     }
 
+    #[Groups(['chantier:read'])]
     public function getTitle(): string
     {
         return $this->title;
@@ -143,6 +147,7 @@ class Chantier
         return $this;
     }
 
+    #[Groups(['chantier:read'])]
     public function getDescription(): ?string
     {
         return $this->description;
@@ -154,6 +159,7 @@ class Chantier
         return $this;
     }
 
+    #[Groups(['chantier:read'])]
     public function getStatus(): ChantierStatusEnum
     {
         return $this->status;
@@ -165,6 +171,7 @@ class Chantier
         return $this;
     }
 
+    #[Groups(['chantier:read'])]
     public function getStartDate(): ?\DateTimeImmutable
     {
         return $this->startDate;
@@ -176,6 +183,7 @@ class Chantier
         return $this;
     }
 
+    #[Groups(['chantier:read'])]
     public function getEndDate(): ?\DateTimeImmutable
     {
         return $this->endDate;
@@ -187,6 +195,7 @@ class Chantier
         return $this;
     }
 
+    #[Groups(['chantier:read'])]
     public function getAddress(): ?string
     {
         return $this->address;
@@ -199,6 +208,7 @@ class Chantier
     }
 
     /** @return Collection<int, Jalon> */
+    #[Groups(['chantier:read'])]
     public function getJalons(): Collection
     {
         return $this->jalons;

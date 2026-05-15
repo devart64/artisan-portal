@@ -7,6 +7,7 @@ namespace App\Entity;
 use App\Repository\JalonRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: JalonRepository::class)]
@@ -49,6 +50,7 @@ class Jalon
         }
     }
 
+    #[Groups(['jalon:read'])]
     public function getId(): Uuid
     {
         return $this->id;
@@ -65,6 +67,7 @@ class Jalon
         return $this;
     }
 
+    #[Groups(['jalon:read'])]
     public function getTitle(): string
     {
         return $this->title;
@@ -76,6 +79,7 @@ class Jalon
         return $this;
     }
 
+    #[Groups(['jalon:read'])]
     public function getDate(): ?\DateTimeImmutable
     {
         return $this->date;
@@ -87,6 +91,7 @@ class Jalon
         return $this;
     }
 
+    #[Groups(['jalon:read'])]
     public function isDone(): bool
     {
         return $this->done;
@@ -98,6 +103,7 @@ class Jalon
         return $this;
     }
 
+    #[Groups(['jalon:read'])]
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
