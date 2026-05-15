@@ -13,6 +13,7 @@ use ApiPlatform\Metadata\Post;
 use App\Repository\ClientRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Serializer\Attribute\Groups;
 use Symfony\Component\Uid\Uuid;
 
 #[ORM\Entity(repositoryClass: ClientRepository::class)]
@@ -64,6 +65,7 @@ class Client
         }
     }
 
+    #[Groups(['client:read', 'chantier:read'])]
     public function getId(): Uuid
     {
         return $this->id;
@@ -80,6 +82,7 @@ class Client
         return $this;
     }
 
+    #[Groups(['client:read', 'chantier:read'])]
     public function getName(): string
     {
         return $this->name;
@@ -91,6 +94,7 @@ class Client
         return $this;
     }
 
+    #[Groups(['client:read'])]
     public function getEmail(): ?string
     {
         return $this->email;
@@ -102,6 +106,7 @@ class Client
         return $this;
     }
 
+    #[Groups(['client:read'])]
     public function getPhone(): ?string
     {
         return $this->phone;
@@ -113,6 +118,7 @@ class Client
         return $this;
     }
 
+    #[Groups(['client:read'])]
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;

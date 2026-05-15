@@ -292,11 +292,13 @@ class Chantier
         return $this;
     }
 
+    #[Groups(['chantier:read'])]
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }
 
+    #[Groups(['chantier:read'])]
     public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
