@@ -1,0 +1,8 @@
+vendor/
+var/
+.git/
+.env
+.env.local
+config/jwt/
+*.md
+tests/
