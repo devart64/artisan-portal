@@ -1,0 +1,27 @@
+api_platform:
+    title: 'Artisan Portal API'
+    description: 'API for managing construction projects and sharing with clients'
+    version: '1.0.0'
+    formats:
+        jsonld:
+            mime_types: ['application/ld+json']
+        json:
+            mime_types: ['application/json']
+        jsonapi:
+            mime_types: ['application/vnd.api+json']
+    docs_formats:
+        jsonld:
+            mime_types: ['application/ld+json']
+        jsonopenapi:
+            mime_types: ['application/vnd.openapi+json']
+        html:
+            mime_types: ['text/html']
+    defaults:
+        stateless: true
+        cache_headers:
+            vary: ['Content-Type', 'Authorization', 'Origin']
+        extra_properties:
+            standard_put: true
+            rfc_7807_compliant_errors: true
+    event_listeners_backward_compatibility_layer: false
+    keep_legacy_inflector: false

@@ -1,0 +1,8 @@
+flysystem:
+    storages:
+        default.storage:
+            adapter: 'aws'
+            options:
+                client: 'aws_s3_client'
+                bucket: '%env(AWS_BUCKET)%'
+                prefix: 'artisan-portal'

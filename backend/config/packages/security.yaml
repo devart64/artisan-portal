@@ -1,0 +1,35 @@
+security:
+    password_hashers:
+        App\Entity\User:
+            algorithm: auto
+
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
+    firewalls:
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        portal:
+            pattern: ^/api/portal/
+            stateless: true
+            custom_authenticators:
+                - App\Security\ClientTokenAuthenticator
+
+        api:
+            pattern: ^/api/
+            stateless: true
+            jwt: ~
+
+        main:
+            lazy: true
+            provider: app_user_provider
+
+    access_control:
+        - { path: ^/api/auth/, roles: PUBLIC_ACCESS }
+        - { path: ^/api/portal/, roles: PUBLIC_ACCESS }
+        - { path: ^/api/, roles: ROLE_USER }

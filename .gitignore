@@ -1,0 +1,21 @@
+# Backend Symfony
+backend/.env
+backend/var/
+backend/vendor/
+backend/config/jwt/
+backend/public/bundles/
+
+# Frontend Next.js
+frontend/.env.local
+frontend/.next/
+frontend/node_modules/
+frontend/out/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
