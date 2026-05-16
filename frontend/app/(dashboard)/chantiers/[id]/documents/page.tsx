@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Download, FileText, ArrowLeft } from 'lucide-react'
+import { Download, FileText, ArrowLeft, FileDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DocumentUploader } from '@/components/chantier/DocumentUploader'
@@ -91,16 +91,28 @@ export default async function DocumentsPage({ params }: DocumentsPageProps) {
                   </div>
                 </div>
               </div>
-              <a
-                href={`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'}/api/chantiers/${id}/documents/${doc.id}/download`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Button variant="outline" size="sm">
-                  <Download className="mr-2 h-4 w-4" />
-                  Télécharger
-                </Button>
-              </a>
+              <div className="flex items-center gap-2">
+                <a
+                  href={`/api/documents/${doc.id}/pdf`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button variant="outline" size="sm">
+                    <FileDown className="mr-2 h-4 w-4" />
+                    PDF
+                  </Button>
+                </a>
+                <a
+                  href={`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'}/api/chantiers/${id}/documents/${doc.id}/download`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button variant="outline" size="sm">
+                    <Download className="mr-2 h-4 w-4" />
+                    Télécharger
+                  </Button>
+                </a>
+              </div>
             </div>
           ))}
         </div>

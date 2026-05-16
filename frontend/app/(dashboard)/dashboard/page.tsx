@@ -1,17 +1,16 @@
 import Link from 'next/link'
-import { HardHat, MessageSquare, FileText, ArrowRight, Plus, Briefcase, Users, FileCheck, TrendingUp } from 'lucide-react'
+import { HardHat, FileText, ArrowRight, Plus, Briefcase, Users, FileCheck, TrendingUp } from 'lucide-react'
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ChantierStatusBadge } from '@/components/chantier/ChantierStatusBadge'
 import { apiFetch } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
-import type { Chantier, Document, Message } from '@/lib/types'
+import type { Chantier, Document } from '@/lib/types'
 
 interface Stats {
   chantiers: number
@@ -24,39 +23,36 @@ interface Stats {
 
 async function getDashboardData() {
   try {
-    const [chantiers, messages, documents, stats] = await Promise.all([
+    const [chantiers, documents, stats] = await Promise.all([
       apiFetch<Chantier[]>('/api/chantiers?status=en_cours'),
-      apiFetch<Message[]>('/api/messages?unread=true'),
       apiFetch<Document[]>('/api/documents?recent=true'),
       apiFetch<Stats>('/api/stats'),
     ])
-    return { chantiers, messages, documents, stats, error: null }
+    return { chantiers, documents, stats, error: null }
   } catch {
-    return { chantiers: [], messages: [], documents: [], stats: null, error: 'Erreur de chargement' }
+    return { chantiers: [], documents: [], stats: null, error: 'Erreur de chargement' }
   }
 }
 
 export default async function DashboardPage() {
-  const { chantiers, messages, documents } = await getDashboardData()
+  const { chantiers, documents, stats } = await getDashboardData()
 
-  const activeChantiers = chantiers.filter((c) => c.status === 'en_cours')
-  const unreadMessages = messages.filter((m) => !m.read)
   const recentChantiers = chantiers.slice(0, 5)
   const recentDocuments = documents.slice(0, 5)
 
   return (
     <div className="space-y-8">
       {/* Stats */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Chantiers actifs
             </CardTitle>
-            <HardHat className="h-5 w-5 text-primary" />
+            <Briefcase className="h-5 w-5 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{activeChantiers.length}</div>
+            <div className="text-3xl font-bold">{stats?.chantiers ?? chantiers.length}</div>
             <p className="mt-1 text-xs text-muted-foreground">En cours actuellement</p>
           </CardContent>
         </Card>
@@ -64,29 +60,56 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Messages non lus
+              Clients
             </CardTitle>
-            <MessageSquare className="h-5 w-5 text-orange-500" />
+            <Users className="h-5 w-5 text-blue-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{unreadMessages.length}</div>
-            <p className="mt-1 text-xs text-muted-foreground">De vos clients</p>
+            <div className="text-3xl font-bold">{stats?.clients ?? '—'}</div>
+            <p className="mt-1 text-xs text-muted-foreground">Total</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Documents récents
+              Documents signés
             </CardTitle>
-            <FileText className="h-5 w-5 text-green-500" />
+            <FileCheck className="h-5 w-5 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{documents.length}</div>
+            <div className="text-3xl font-bold">{stats?.documentsSigned ?? '—'}</div>
             <p className="mt-1 text-xs text-muted-foreground">Ce mois-ci</p>
           </CardContent>
         </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Leads
+            </CardTitle>
+            <TrendingUp className="h-5 w-5 text-orange-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{stats?.leads ?? '—'}</div>
+            <p className="mt-1 text-xs text-muted-foreground">En attente</p>
+          </CardContent>
+        </Card>
       </div>
+
+      {stats && Object.keys(stats.chantiersByStatus).length > 0 && (
+        <div className="border rounded-lg p-6 bg-card">
+          <h2 className="font-semibold mb-4">Chantiers par statut</h2>
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(stats.chantiersByStatus).map(([status, count]) => (
+              <div key={status} className="flex items-center gap-2 bg-muted rounded-lg px-3 py-2">
+                <span className="capitalize text-sm">{status.replace('_', ' ')}</span>
+                <span className="font-bold">{count as number}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Recent Chantiers */}
       <div>

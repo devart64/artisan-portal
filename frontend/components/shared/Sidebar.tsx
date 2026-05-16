@@ -8,6 +8,8 @@ import {
   Settings,
   LogOut,
   Wrench,
+  UsersRound,
+  UserCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { logout } from '@/lib/auth'
@@ -17,6 +19,11 @@ const navItems = [
   { href: '/chantiers', label: 'Chantiers', icon: HardHat },
   { href: '/clients', label: 'Clients', icon: Users },
   { href: '/settings', label: 'Paramètres', icon: Settings },
+]
+
+const settingsItems = [
+  { href: '/settings/team', label: 'Équipe', icon: UsersRound },
+  { href: '/settings/account', label: 'Mon compte', icon: UserCircle },
 ]
 
 export function Sidebar() {
@@ -37,7 +44,9 @@ export function Sidebar() {
         {navItems.map((item) => {
           const Icon = item.icon
           const isActive =
-            pathname === item.href || pathname.startsWith(item.href + '/')
+            item.href === '/settings'
+              ? pathname === item.href
+              : pathname === item.href || pathname.startsWith(item.href + '/')
           return (
             <Link
               key={item.href}
@@ -54,6 +63,31 @@ export function Sidebar() {
             </Link>
           )
         })}
+
+        <div className="pt-3">
+          <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wider text-gray-400">
+            Compte
+          </p>
+          {settingsItems.map((item) => {
+            const Icon = item.icon
+            const isActive = pathname === item.href || pathname.startsWith(item.href + '/')
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors',
+                  isActive
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
+                )}
+              >
+                <Icon className="h-5 w-5 shrink-0" />
+                {item.label}
+              </Link>
+            )
+          })}
+        </div>
       </nav>
 
       {/* Logout */}

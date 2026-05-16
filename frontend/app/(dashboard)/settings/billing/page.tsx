@@ -58,7 +58,7 @@ const statusConfig: Record<PlanStatus, { label: string; icon: typeof CheckCircle
 
 async function getBillingData() {
   try {
-    const tenant = await apiFetch<Tenant & { nextBillingDate?: string; stripePortalUrl?: string }>(
+    const tenant = await apiFetch<Tenant & { nextBillingDate?: string; stripePortalUrl?: string; trialEndsAt?: string }>(
       '/api/billing',
     )
     return { tenant, error: null }
@@ -109,6 +109,17 @@ export default async function BillingPage({
       {params.canceled === '1' && (
         <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-4 text-sm text-yellow-800">
           Le paiement a été annulé. Votre abonnement reste inchangé.
+        </div>
+      )}
+
+      {tenant.trialEndsAt && tenant.planStatus === 'trialing' && (
+        <div className="rounded-lg border border-orange-200 bg-orange-50 p-4 mb-6">
+          <p className="text-orange-800 font-medium text-sm">
+            Période d'essai — expire le {new Date(tenant.trialEndsAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+          </p>
+          <p className="text-orange-700 text-xs mt-1">
+            Souscrivez un abonnement pour continuer à utiliser Artisan Portal après cette date.
+          </p>
         </div>
       )}
 

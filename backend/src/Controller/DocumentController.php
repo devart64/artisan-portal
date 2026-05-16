@@ -14,6 +14,7 @@ use App\Repository\DocumentRepository;
 use App\Repository\PhotoRepository;
 use App\Service\FileUploadService;
 use App\Service\NotificationService;
+use App\Service\PdfService;
 use App\Service\TenantContext;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -233,6 +234,43 @@ class DocumentController extends AbstractController
         ], $photos);
 
         return $this->json($data);
+    }
+
+    /**
+     * GET /api/documents/{id}/pdf
+     * Generate a PDF for the document and return it as a binary download.
+     */
+    #[Route('/documents/{id}/pdf', name: 'document_pdf', methods: ['GET'])]
+    public function pdf(string $id, PdfService $pdfService): Response
+    {
+        $tenant = $this->tenantContext->getTenant();
+        $document = $this->documentRepository->find($id);
+
+        if ($document === null || $document->getChantier()->getTenant()->getId()->toString() !== $tenant->getId()->toString()) {
+            return $this->json(['error' => 'Document introuvable.'], Response::HTTP_NOT_FOUND);
+        }
+
+        $this->denyAccessUnlessGranted('view', $document);
+
+        $chantier = $document->getChantier();
+
+        $pdfContent = $pdfService->generateDocumentPdf(
+            document:        $document,
+            tenantName:      $tenant->getName(),
+            brandColor:      $tenant->getBrandColor(),
+            chantierTitle:   $chantier->getTitle(),
+            clientName:      $chantier->getClient()?->getName() ?? '',
+            chantierAddress: $chantier->getAddress(),
+        );
+
+        return new Response(
+            $pdfContent,
+            Response::HTTP_OK,
+            [
+                'Content-Type'        => 'application/pdf',
+                'Content-Disposition' => sprintf('attachment; filename="%s.pdf"', urlencode($document->getLabel())),
+            ]
+        );
     }
 
     private function findChantierOrFail(string $id, \App\Entity\Tenant $tenant): ?Chantier
