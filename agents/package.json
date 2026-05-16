@@ -1,0 +1,28 @@
+{
+  "name": "artisan-portal-agents",
+  "version": "1.0.0",
+  "description": "Équipe d'agents IA marketing pour Artisan Portal",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "prospect": "tsx src/index.ts prospect",
+    "qualify": "tsx src/index.ts qualify",
+    "campaign": "tsx src/index.ts campaign",
+    "report": "tsx src/index.ts report"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.30.0",
+    "axios": "^1.7.0",
+    "node-cron": "^3.0.3",
+    "dotenv": "^16.4.5",
+    "chalk": "^5.3.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/node-cron": "^3.0.11",
+    "tsx": "^4.15.0",
+    "typescript": "^5.4.0"
+  }
+}

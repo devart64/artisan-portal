@@ -478,9 +478,9 @@ export default function LandingPage() {
             Artisan<span className="text-orange-500">Portal</span>
           </span>
           <div className="flex gap-6 text-sm text-slate-500">
-            <a href="#" className="hover:text-slate-300">Mentions légales</a>
-            <a href="#" className="hover:text-slate-300">CGV</a>
-            <a href="#" className="hover:text-slate-300">Confidentialité</a>
+            <Link href="/mentions-legales" className="hover:text-slate-300">Mentions légales</Link>
+            <Link href="/cgv" className="hover:text-slate-300">CGV</Link>
+            <Link href="/politique-confidentialite" className="hover:text-slate-300">Confidentialité</Link>
             <a href="#" className="hover:text-slate-300">Contact</a>
           </div>
           <p className="text-sm text-slate-500">© 2026 Artisan Portal</p>
