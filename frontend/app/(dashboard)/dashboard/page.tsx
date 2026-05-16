@@ -11,6 +11,8 @@ import { ChantierStatusBadge } from '@/components/chantier/ChantierStatusBadge'
 import { apiFetch } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 import type { Chantier, Document } from '@/lib/types'
+import { OnboardingChecklist } from './OnboardingChecklist'
+import { OnboardingModal } from '@/components/shared/OnboardingModal'
 
 interface Stats {
   chantiers: number
@@ -21,27 +23,41 @@ interface Stats {
   leads: number
 }
 
+interface ChecklistData {
+  steps: Array<{ key: string; label: string; done: boolean }>
+  completed: number
+  total: number
+  percent: number
+  done: boolean
+}
+
 async function getDashboardData() {
   try {
-    const [chantiers, documents, stats] = await Promise.all([
+    const [chantiers, documents, stats, onboarding] = await Promise.all([
       apiFetch<Chantier[]>('/api/chantiers?status=en_cours'),
       apiFetch<Document[]>('/api/documents?recent=true'),
       apiFetch<Stats>('/api/stats'),
+      apiFetch<ChecklistData>('/api/onboarding/checklist').catch(() => null),
     ])
-    return { chantiers, documents, stats, error: null }
+    return { chantiers, documents, stats, onboarding, error: null }
   } catch {
-    return { chantiers: [], documents: [], stats: null, error: 'Erreur de chargement' }
+    return { chantiers: [], documents: [], stats: null, onboarding: null, error: 'Erreur de chargement' }
   }
 }
 
 export default async function DashboardPage() {
-  const { chantiers, documents, stats } = await getDashboardData()
+  const { chantiers, documents, stats, onboarding } = await getDashboardData()
 
   const recentChantiers = chantiers.slice(0, 5)
   const recentDocuments = documents.slice(0, 5)
 
   return (
     <div className="space-y-8">
+      {onboarding && !onboarding.done && (
+        <OnboardingChecklist steps={onboarding.steps} percent={onboarding.percent} />
+      )}
+      <OnboardingModal data={onboarding ?? { steps: [], completed: 0, total: 0, percent: 0, done: true }} />
+
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
