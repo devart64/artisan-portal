@@ -8,14 +8,14 @@ Bienvenue dans la documentation technique complète d'Artisan Portal.
 
 | Document | Contenu |
 |----------|---------|
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | Vue d'ensemble, schéma BDD, multi-tenancy, flux d'auth |
-| [BACKEND.md](./BACKEND.md) | Entités, enums, routes API, services, sécurité, tests |
-| [FRONTEND.md](./FRONTEND.md) | Pages, composants, lib/, middleware, SEO |
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | Vue d'ensemble, schéma BDD, multi-tenancy, flux d'auth, PWA, push, audit |
+| [BACKEND.md](./BACKEND.md) | Entités, enums, routes API, services, 2FA, push, audit, commandes, migrations, tests |
+| [FRONTEND.md](./FRONTEND.md) | Pages, composants, PWA, notifications, lib/, middleware, SEO |
 | [AGENTS.md](./AGENTS.md) | Agents IA marketing, scheduler, services email/SMS/scraping |
 | [INFRASTRUCTURE.md](./INFRASTRUCTURE.md) | Docker, Makefile, CI/CD GitHub Actions |
-| [CONFIGURATION.md](./CONFIGURATION.md) | Toutes les variables d'environnement |
-| [DEPLOYMENT.md](./DEPLOYMENT.md) | Déploiement Railway, Vercel, AWS S3, Stripe |
-| [DEVELOPMENT.md](./DEVELOPMENT.md) | Installation locale, workflow, résolution de problèmes |
+| [CONFIGURATION.md](./CONFIGURATION.md) | Toutes les variables d'environnement (VAPID, admin, Stripe, Anthropic…) |
+| [DEPLOYMENT.md](./DEPLOYMENT.md) | Déploiement Railway, Vercel, AWS S3, Stripe, checklist de lancement |
+| [DEVELOPMENT.md](./DEVELOPMENT.md) | Installation locale, workflow, commandes utiles, résolution de problèmes |
 
 ---
 
@@ -35,10 +35,12 @@ Puis ouvrir http://localhost:3000
 
 ```
 Backend  : Symfony 7.2 + API Platform + PostgreSQL (multi-tenant par SQL filter)
-Frontend : Next.js 15 App Router + Tailwind + shadcn/ui
+Frontend : Next.js 15 App Router + Tailwind + shadcn/ui (PWA installable)
 Agents   : Node.js + Claude API + Resend + Twilio + Sirene API
-Auth     : JWT (artisans) + Magic Link 30j (clients finaux)
+Auth     : JWT (artisans) + Magic Link 30j (clients finaux) + 2FA TOTP (optionnel)
 Fichiers : AWS S3 (pre-signed URLs uniquement)
+Push     : Web Push API / VAPID (minishlink/web-push)
+PDF      : dompdf (génération côté serveur)
 ```
 
 ---

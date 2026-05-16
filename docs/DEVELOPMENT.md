@@ -34,7 +34,7 @@ make install
 4. Attend que PostgreSQL soit prêt
 5. Génère les clés JWT RSA (`private.pem` + `public.pem`)
 6. `composer install` dans le conteneur backend
-7. `doctrine:migrations:migrate` — crée toutes les tables
+7. `doctrine:migrations:migrate` — crée toutes les tables (001 → 007)
 8. `pnpm install` dans le conteneur frontend
 
 ---
@@ -228,6 +228,18 @@ php bin/console debug:router      # Liste toutes les routes
 php bin/console debug:container   # Services enregistrés
 php bin/console cache:clear       # Vider le cache
 php bin/console doctrine:schema:validate  # Valider le schema
+
+# Rappels documents non signés (à mettre en cron)
+php bin/console app:send-document-reminders --days=3
+
+# Générer les clés VAPID (run en dehors du conteneur)
+npx web-push generate-vapid-keys
+
+# Générer le hash du mot de passe admin
+php bin/console security:hash-password
+
+# Accès super-admin via HTTP Basic
+curl -u admin:password https://backend.railway.app/admin/api/tenants
 ```
 
 ### Commandes Agents IA
@@ -415,14 +427,49 @@ Erreur scraping: Request failed with status code 429
 
 ---
 
+### "La 2FA ne fonctionne pas (code invalide)"
+
+```
+Invalid TOTP code
+```
+
+**Causes possibles** :
+1. Dérive horaire entre le serveur et l'appareil — vérifier que l'heure système du serveur est correcte (NTP)
+2. QR code scanné mais secret non persisté — vérifier que `app:auth:2fa:setup` a bien sauvegardé le `totpSecret` en base
+3. Fenêtre de tolérance trop stricte — `spomky-labs/otphp` tolère par défaut ±1 période (30s)
+
+**Solution dev** :
+```bash
+# Vérifier l'heure du conteneur
+docker compose exec backend date
+
+# Synchroniser si nécessaire
+docker compose exec backend ntpdate -u pool.ntp.org
+```
+
+---
+
+### "Les notifications push ne s'affichent pas"
+
+**Vérifications** :
+1. Les variables `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` sont renseignées dans `backend/.env`
+2. Le navigateur a accordé la permission de notifications (`Notifications: Allow`)
+3. Le Service Worker est enregistré : ouvrir DevTools → Application → Service Workers
+4. L'endpoint push est bien enregistré en base : vérifier la table `push_subscriptions`
+5. En dev, utiliser Chrome DevTools → Application → Push Messaging pour simuler un push
+
+---
+
 ## Ajouter un nouveau plan tarifaire
 
 1. Ajouter la valeur dans `backend/src/Enum/PlanEnum.php`
-2. Créer le produit + prix dans Stripe Dashboard
-3. Mettre à jour `PlanEnum::allowsSms()` si nécessaire
-4. Mettre à jour la landing page `frontend/app/page.tsx` (section pricing)
-5. Mettre à jour la page `frontend/app/(legal)/cgv/page.tsx` (tableau tarifs)
-6. Générer une migration si des colonnes changent
+2. Mettre à jour les méthodes `allowsSms()`, `allowsApiKeys()` si nécessaire
+3. Mettre à jour `PlanLimitChecker` avec les nouvelles limites
+4. Créer le produit + prix dans Stripe Dashboard
+5. Ajouter la variable `STRIPE_PRICE_<NOM_PLAN>` dans `backend/.env` et `CONFIGURATION.md`
+6. Mettre à jour la landing page `frontend/app/page.tsx` (section pricing)
+7. Mettre à jour la page `frontend/app/(legal)/cgv/page.tsx` (tableau tarifs)
+8. Générer une migration si des colonnes changent
 
 ---
 

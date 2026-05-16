@@ -14,7 +14,7 @@ Guide complet pour déployer Artisan Portal en production.
 | [Stripe](https://stripe.com) | Abonnements et paiements | 1,5% + 0,25€/transaction |
 | [Twilio](https://twilio.com) | SMS notifications | ~0,08€/SMS |
 | [Resend](https://resend.com) | Emails agents IA | 3 000 emails/mois gratuits |
-| [Anthropic](https://console.anthropic.com) | API Claude (agents IA) | Pay-as-you-go |
+| [Anthropic](https://console.anthropic.com) | API Claude (agents IA + génération devis) | Pay-as-you-go |
 
 ---
 
@@ -60,15 +60,15 @@ Guide complet pour déployer Artisan Portal en production.
 
 **Plan Débutant** :
 - Nom : "Artisan Portal — Débutant"
-- Prix récurrent : 29€/mois → copier le `price_id`
+- Prix récurrent : 29€/mois → copier le `price_id` → `STRIPE_PRICE_STARTER`
 
 **Plan Professionnel** :
 - Nom : "Artisan Portal — Professionnel"
-- Prix récurrent : 59€/mois → copier le `price_id`
+- Prix récurrent : 59€/mois → copier le `price_id` → `STRIPE_PRICE_PRO`
 
 **Plan Entreprise** :
 - Nom : "Artisan Portal — Entreprise"
-- Prix récurrent : 99€/mois → copier le `price_id`
+- Prix récurrent : 99€/mois → copier le `price_id` → `STRIPE_PRICE_BUSINESS`
 
 ### Configurer le webhook
 
@@ -141,9 +141,18 @@ AWS_REGION=eu-west-3
 AWS_BUCKET=artisan-portal-prod
 STRIPE_SECRET_KEY=sk_live_...
 STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRICE_STARTER=price_...
+STRIPE_PRICE_PRO=price_...
+STRIPE_PRICE_BUSINESS=price_...
 TWILIO_ACCOUNT_SID=ACxxxx
 TWILIO_AUTH_TOKEN=xxxx
 TWILIO_PHONE_NUMBER=+33xxxxxxxxx
+VAPID_PUBLIC_KEY=<généré avec npx web-push generate-vapid-keys>
+VAPID_PRIVATE_KEY=<généré avec npx web-push generate-vapid-keys>
+VAPID_SUBJECT=mailto:contact@artisan-portal.fr
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD_HASH=<généré avec php bin/console security:hash-password>
+ANTHROPIC_API_KEY=sk-ant-...
 FRONTEND_URL=https://artisan-portal.fr
 CORS_ALLOW_ORIGIN=https://artisan-portal.fr
 ```
@@ -235,6 +244,11 @@ HUNTER_API_KEY=xxxx (optionnel)
 
 Command de démarrage : `pnpm scheduler`
 
+Le scheduler intègre les tâches cron suivantes :
+- **09h lun-ven** : campagne de prospection automatique
+- **14h lun-ven** : relances (followup) des leads contactés
+- **Lundi 08h** : rapport de conversion hebdomadaire
+
 ### Option 2 : VPS (Ubuntu)
 
 ```bash
@@ -250,6 +264,16 @@ npm install -g pm2
 pm2 start "pnpm scheduler" --name artisan-agents
 pm2 save
 pm2 startup
+```
+
+### Cron : rappels documents non signés
+
+Le backend expose une commande Symfony à planifier en cron sur Railway (ou via un cron job VPS) :
+
+```bash
+# Dans Railway → Service backend → Settings → Cron Jobs
+# Tous les jours à 9h
+0 9 * * * php /var/www/html/bin/console app:send-document-reminders --days=3
 ```
 
 ---
@@ -274,14 +298,15 @@ curl https://votre-backend.railway.app/api/auth/register \
 ### Infrastructure
 - [ ] Bucket S3 créé, politique sans accès public, utilisateur IAM configuré
 - [ ] Backend déployé sur Railway et accessible (`/api/auth/register` → 201)
-- [ ] PostgreSQL Railway connecté, migrations appliquées
+- [ ] PostgreSQL Railway connecté, migrations appliquées (001 → 007)
 - [ ] Redis Railway connecté
 - [ ] Frontend déployé sur Vercel (`/` → landing page)
 - [ ] Domaine `artisan-portal.fr` configuré et SSL actif
 - [ ] Variables d'environnement complètes sur Railway et Vercel
 
 ### Stripe
-- [ ] Produits créés (3 plans avec prix)
+- [ ] Produits créés (3 plans avec prix : Starter 29€, Pro 59€, Business 99€)
+- [ ] Variables `STRIPE_PRICE_STARTER`, `STRIPE_PRICE_PRO`, `STRIPE_PRICE_BUSINESS` configurées
 - [ ] Webhook configuré et testé (`stripe trigger customer.subscription.updated`)
 - [ ] Clés live (pas test) utilisées en production
 
@@ -290,14 +315,23 @@ curl https://votre-backend.railway.app/api/auth/register \
 - [ ] Numéro Twilio actif et testé
 - [ ] Email de bienvenue reçu après inscription test
 
+### Push notifications
+- [ ] Clés VAPID générées (`npx web-push generate-vapid-keys`)
+- [ ] Variables `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` configurées
+- [ ] Test d'abonnement push depuis le frontend (`/settings/account`)
+- [ ] Notification push reçue après une action (ex: nouveau message)
+
 ### Agents IA
 - [ ] Scheduler démarré et actif
 - [ ] Première campagne manuelle testée (`pnpm campaign plombier Paris 3`)
 - [ ] Webhooks `/interested` et `/unsubscribe` testés manuellement
+- [ ] Cron `app:send-document-reminders` planifié sur Railway
 
 ### Sécurité
 - [ ] `APP_SECRET` généré aléatoirement (32+ chars)
 - [ ] `JWT_PASSPHRASE` fort et unique
+- [ ] `ADMIN_USERNAME` et `ADMIN_PASSWORD_HASH` configurés
+- [ ] Accès admin testé : `curl -u admin:password https://backend.railway.app/admin/api/tenants`
 - [ ] Aucune clé API dans le code versionné
 - [ ] CORS configuré avec le vrai domaine (`CORS_ALLOW_ORIGIN=https://artisan-portal.fr`)
 - [ ] Rate limiting actif (testé avec 11+ requêtes sur `/api/auth/login`)
@@ -307,11 +341,16 @@ curl https://votre-backend.railway.app/api/auth/register \
 - [ ] Création chantier → visible dans le dashboard
 - [ ] Magic link envoyé → portail client accessible
 - [ ] Upload document → téléchargeable via URL S3 pré-signée
+- [ ] Signature document → statut mis à jour vers `signe`
 - [ ] SMS envoyé sur plan Pro (tester avec numéro réel)
 - [ ] Paiement Stripe test (`4242 4242 4242 4242`) → plan mis à jour
+- [ ] Export iCalendar jalons → importable dans Google Calendar
+- [ ] 2FA TOTP → QR code scannable, code valide au login
+- [ ] Génération devis IA → réponse Claude (plan Business)
 
 ### SEO
 - [ ] `/sitemap.xml` accessible et correctement formé
 - [ ] `/robots.txt` accessible
 - [ ] Google Search Console → soumettre le sitemap
 - [ ] Métadonnées OpenGraph testées (partage LinkedIn/Twitter)
+- [ ] PWA installable depuis Chrome (bouton "Ajouter à l'écran d'accueil")

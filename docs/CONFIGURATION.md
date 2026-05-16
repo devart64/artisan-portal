@@ -223,6 +223,62 @@ Ces variables sont requises uniquement si vous souhaitez activer les SMS (plans 
 
 ---
 
+### Push Notifications Web (VAPID)
+
+| Variable | Requis | Description | Exemple |
+|----------|--------|-------------|---------|
+| `VAPID_PUBLIC_KEY` | Oui | Clé publique VAPID pour les notifications push navigateur | `BNxxxxxx...` |
+| `VAPID_PRIVATE_KEY` | Oui | Clé privée VAPID (ne jamais exposer côté client) | `xxxxxx...` |
+| `VAPID_SUBJECT` | Oui | Contact de l'administrateur (mailto: ou URL) | `mailto:contact@artisan-portal.fr` |
+
+**Comment générer les clés VAPID :**
+```bash
+npx web-push generate-vapid-keys
+```
+Cette commande génère une paire de clés VAPID. Copiez les valeurs dans les variables d'environnement.
+
+**Important :** `VAPID_PUBLIC_KEY` est également retournée au frontend via `GET /api/push/vapid-public-key`. Elle est publique par nature.
+
+---
+
+### Administration super-admin
+
+| Variable | Requis | Description | Exemple |
+|----------|--------|-------------|---------|
+| `ADMIN_USERNAME` | Oui | Identifiant HTTP Basic pour l'accès `/admin/api/` | `admin` |
+| `ADMIN_PASSWORD_HASH` | Oui | Hash bcrypt du mot de passe admin | `$2y$13$...` |
+
+**Générer le hash du mot de passe admin :**
+```bash
+php bin/console security:hash-password
+# Entrez le mot de passe quand demandé
+# Copiez le hash $2y$... dans ADMIN_PASSWORD_HASH
+```
+
+**Utilisation :**
+```bash
+curl -u admin:votre_mot_de_passe https://backend.railway.app/admin/api/tenants
+```
+
+---
+
+### Intelligence Artificielle (Anthropic)
+
+| Variable | Requis | Description | Exemple |
+|----------|--------|-------------|---------|
+| `ANTHROPIC_API_KEY` | Conditionnel | Clé API Anthropic pour Claude (génération devis IA, plan Business) | `sk-ant-api03-...` |
+
+**Comment créer une clé Anthropic :**
+1. Créez un compte sur [console.anthropic.com](https://console.anthropic.com)
+2. Allez dans **API Keys** → **Create Key**
+3. Donnez un nom explicite (ex. `artisan-portal-backend`)
+4. Copiez la clé immédiatement (elle ne sera plus affichée)
+5. Configurez des limites de dépenses dans les paramètres de facturation
+
+Cette variable est requise uniquement pour la fonctionnalité de génération de devis IA (plan Business). Laisser vide désactive silencieusement la fonctionnalité.
+
+---
+
 ### URLs et CORS
 
 | Variable | Requis | Description | Exemple |
@@ -271,6 +327,8 @@ Copiez `agents/.env.example` vers `agents/.env` et renseignez les variables.
 | Variable | Requis | Description | Exemple |
 |----------|--------|-------------|---------|
 | `ANTHROPIC_API_KEY` | Oui | Clé API Anthropic pour accéder aux modèles Claude | `sk-ant-api03-...` |
+
+Même clé que pour le backend si vous utilisez les deux, ou clé séparée avec des limites de dépenses distinctes.
 
 **Comment créer une clé Anthropic :**
 1. Créez un compte sur [console.anthropic.com](https://console.anthropic.com)
@@ -362,6 +420,11 @@ JWT_PASSPHRASE=dev_passphrase
 MAILER_DSN=smtp://localhost:1025
 FRONTEND_URL=http://localhost:3000
 CORS_ALLOW_ORIGIN=^https?://(localhost|127\.0\.0\.1)(:[0-9]+)?$
+VAPID_PUBLIC_KEY=<généré avec npx web-push generate-vapid-keys>
+VAPID_PRIVATE_KEY=<généré avec npx web-push generate-vapid-keys>
+VAPID_SUBJECT=mailto:dev@artisan-portal.fr
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD_HASH=<généré avec php bin/console security:hash-password>
 
 # frontend/.env.local
 NEXT_PUBLIC_API_URL=http://localhost:8000
@@ -377,5 +440,9 @@ Toutes les variables sont requises, notamment :
 - `AWS_*` : credentials S3 production
 - `STRIPE_SECRET_KEY` : clé live (`sk_live_...`)
 - `STRIPE_WEBHOOK_SECRET` : secret du webhook production
+- `STRIPE_PRICE_STARTER` / `STRIPE_PRICE_PRO` / `STRIPE_PRICE_BUSINESS` : IDs prix Stripe
 - `FRONTEND_URL` : `https://app.artisan-portal.fr`
 - `CORS_ALLOW_ORIGIN` : `^https://app\.artisan-portal\.fr$`
+- `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` / `VAPID_SUBJECT` : clés VAPID production
+- `ADMIN_USERNAME` / `ADMIN_PASSWORD_HASH` : accès super-admin
+- `ANTHROPIC_API_KEY` : clé Anthropic (si plan Business activé)
