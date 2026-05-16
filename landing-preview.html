@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Artisan Portal — Votre chantier, présenté comme un pro</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@400;500;600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --orange: #F97316;
+  --orange-d: #C2410C;
+  --blue: #1D4ED8;
+  --dark: #0F172A;
+  --dark2: #1E293B;
+  --grey: #F8FAFC;
+  --grey2: #E2E8F0;
+  --text: #334155;
+  --muted: #64748B;
+  --white: #FFFFFF;
+  --radius: 16px;
+}
+
+body { font-family: 'Inter', system-ui, sans-serif; color: var(--dark); background: var(--white); line-height: 1.6; }
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(255,255,255,0.95); backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--grey2);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem; height: 68px;
+}
+.nav-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.25rem; color: var(--dark); text-decoration: none; }
+.nav-logo span { color: var(--orange); }
+.nav-links { display: flex; align-items: center; gap: 2rem; }
+.nav-links a { font-size: 0.9rem; font-weight: 500; color: var(--text); text-decoration: none; transition: color .2s; }
+.nav-links a:hover { color: var(--orange); }
+.nav-cta { background: var(--orange); color: #fff; padding: 10px 22px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; text-decoration: none; transition: background .2s; white-space: nowrap; }
+.nav-cta:hover { background: var(--orange-d); }
+
+/* ── HERO ── */
+.hero {
+  min-height: 100vh;
+  display: flex; align-items: center;
+  background: var(--dark);
+  position: relative; overflow: hidden;
+  padding: 120px 2rem 80px;
+}
+.hero-bg {
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 60% 40%, rgba(249,115,22,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 60% at 20% 80%, rgba(29,78,216,0.12) 0%, transparent 60%);
+}
+.hero-grid {
+  position: relative; z-index: 1;
+  max-width: 1200px; margin: 0 auto;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; align-items: center;
+}
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(249,115,22,0.15); border: 1px solid rgba(249,115,22,0.4);
+  border-radius: 100px; padding: 6px 16px;
+  font-size: 0.78rem; color: #FB923C; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+.hero h1 {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: clamp(2.5rem, 4vw, 3.8rem);
+  line-height: 1.1; color: #fff;
+  margin-bottom: 1.5rem;
+}
+.hero h1 em { font-style: normal; color: var(--orange); }
+.hero p.lead {
+  font-size: 1.15rem; color: #94A3B8;
+  max-width: 480px; margin-bottom: 2.5rem; line-height: 1.7;
+}
+.hero-cta-group { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.btn-primary {
+  background: var(--orange); color: #fff;
+  padding: 14px 28px; border-radius: 10px; font-weight: 600; font-size: 1rem;
+  text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+  transition: background .2s, transform .15s;
+}
+.btn-primary:hover { background: var(--orange-d); transform: translateY(-1px); }
+.btn-ghost {
+  color: #94A3B8; font-size: 0.9rem; text-decoration: none; font-weight: 500;
+  display: flex; align-items: center; gap: 6px;
+}
+.btn-ghost:hover { color: #fff; }
+.hero-note { margin-top: 1.25rem; font-size: 0.82rem; color: #475569; display: flex; align-items: center; gap: 6px; }
+
+/* Hero mockup */
+.hero-mockup {
+  background: var(--dark2); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 20px; overflow: hidden; box-shadow: 0 40px 80px rgba(0,0,0,0.5);
+}
+.mockup-bar {
+  background: rgba(255,255,255,0.05); padding: 12px 16px;
+  display: flex; align-items: center; gap: 8px; border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.mockup-body { padding: 20px; }
+.mockup-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.mockup-title { font-weight: 700; color: #fff; font-size: 0.95rem; }
+.status-pill { background: rgba(34,197,94,0.15); color: #4ADE80; border: 1px solid rgba(34,197,94,0.3); border-radius: 100px; padding: 3px 10px; font-size: 0.72rem; font-weight: 600; }
+.progress-block { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+.progress-label { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.78rem; color: #94A3B8; }
+.progress-bar { height: 6px; background: rgba(255,255,255,0.08); border-radius: 100px; overflow: hidden; }
+.progress-fill { height: 100%; border-radius: 100px; background: linear-gradient(90deg, var(--orange), #FB923C); }
+.mockup-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.mockup-card { background: rgba(255,255,255,0.04); border-radius: 10px; padding: 14px; border: 1px solid rgba(255,255,255,0.06); }
+.mockup-card-icon { font-size: 1.2rem; margin-bottom: 6px; }
+.mockup-card-label { font-size: 0.72rem; color: #64748B; margin-bottom: 2px; }
+.mockup-card-val { font-size: 0.9rem; font-weight: 600; color: #E2E8F0; }
+.mockup-msg { background: rgba(249,115,22,0.1); border: 1px solid rgba(249,115,22,0.2); border-radius: 10px; padding: 12px; margin-top: 12px; }
+.mockup-msg-label { font-size: 0.7rem; color: var(--orange); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+.mockup-msg-text { font-size: 0.8rem; color: #CBD5E1; }
+
+/* ── PAIN ── */
+.pain {
+  padding: 100px 2rem;
+  background: var(--grey);
+}
+.pain-inner { max-width: 1100px; margin: 0 auto; }
+.section-label { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--orange); margin-bottom: 1rem; }
+.pain h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(2rem, 3.5vw, 3rem); max-width: 700px; margin-bottom: 1.5rem; line-height: 1.15; }
+.pain p.sub { font-size: 1.1rem; color: var(--muted); max-width: 600px; margin-bottom: 3.5rem; }
+.pain-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+.pain-card {
+  background: #fff; border-radius: var(--radius); padding: 2rem;
+  border: 1px solid var(--grey2); position: relative; overflow: hidden;
+}
+.pain-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--orange), #FB923C);
+}
+.pain-emoji { font-size: 2rem; margin-bottom: 1rem; }
+.pain-card h3 { font-weight: 700; font-size: 1rem; margin-bottom: .5rem; color: var(--dark); }
+.pain-card p { font-size: 0.9rem; color: var(--muted); line-height: 1.6; }
+.pain-card .highlight { background: rgba(249,115,22,0.1); border-radius: 6px; padding: 2px 8px; color: var(--orange); font-weight: 600; font-size: 0.85rem; display: inline-block; margin-top: .75rem; }
+
+/* ── SOLUTION ── */
+.solution {
+  padding: 100px 2rem;
+  background: var(--white);
+}
+.solution-inner { max-width: 1100px; margin: 0 auto; }
+.solution-header { text-align: center; margin-bottom: 4rem; }
+.solution h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(2rem, 3.5vw, 3rem); margin-bottom: 1rem; }
+.solution h2 em { font-style: normal; color: var(--orange); }
+.solution .sub { font-size: 1.1rem; color: var(--muted); max-width: 540px; margin: 0 auto; }
+.steps { display: grid; grid-template-columns: repeat(3,1fr); gap: 2rem; }
+.step { text-align: center; padding: 2.5rem 1.5rem; }
+.step-num {
+  width: 60px; height: 60px; border-radius: 50%;
+  background: var(--orange); color: #fff;
+  font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 1.5rem;
+}
+.step h3 { font-weight: 700; font-size: 1.15rem; margin-bottom: .75rem; }
+.step p { font-size: 0.9rem; color: var(--muted); line-height: 1.7; }
+
+/* Connector */
+.steps-wrap { position: relative; }
+
+/* ── FEATURES (OUTCOMES) ── */
+.features {
+  padding: 100px 2rem;
+  background: var(--grey);
+}
+.features-inner { max-width: 1100px; margin: 0 auto; }
+.features-header { max-width: 600px; margin-bottom: 4rem; }
+.features h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(2rem, 3.5vw, 3rem); margin-bottom: 1rem; }
+.feat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+.feat-item {
+  background: #fff; border-radius: var(--radius); padding: 2rem;
+  border: 1px solid var(--grey2); display: flex; gap: 1.25rem; align-items: flex-start;
+  transition: box-shadow .2s, transform .2s;
+}
+.feat-item:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.08); transform: translateY(-2px); }
+.feat-icon {
+  width: 48px; height: 48px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+  background: rgba(249,115,22,0.1);
+}
+.feat-body h3 { font-weight: 700; font-size: 1rem; margin-bottom: .4rem; }
+.feat-body p { font-size: 0.88rem; color: var(--muted); line-height: 1.6; }
+.feat-result { font-size: 0.78rem; font-weight: 600; color: var(--orange); margin-top: .5rem; display: flex; align-items: center; gap: 4px; }
+
+/* ── AI AGENTS SECTION ── */
+.ai-section {
+  padding: 100px 2rem;
+  background: var(--dark);
+  position: relative; overflow: hidden;
+}
+.ai-section::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 100%, rgba(249,115,22,0.12) 0%, transparent 70%);
+}
+.ai-inner { max-width: 900px; margin: 0 auto; text-align: center; position: relative; z-index: 1; }
+.ai-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(249,115,22,0.15); border: 1px solid rgba(249,115,22,0.3);
+  border-radius: 100px; padding: 6px 18px;
+  font-size: 0.78rem; color: #FB923C; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+.ai-section h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(2rem, 3.5vw, 3rem); color: #fff; margin-bottom: 1.25rem; line-height: 1.15; }
+.ai-section h2 em { font-style: normal; color: var(--orange); }
+.ai-section p.sub { font-size: 1.1rem; color: #94A3B8; max-width: 600px; margin: 0 auto 3rem; }
+.ai-cards { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.25rem; margin-bottom: 3rem; }
+.ai-card {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px; padding: 1.75rem;
+}
+.ai-card-icon { font-size: 2rem; margin-bottom: 1rem; }
+.ai-card h4 { font-weight: 700; color: #fff; margin-bottom: .5rem; font-size: 0.95rem; }
+.ai-card p { font-size: 0.85rem; color: #64748B; line-height: 1.6; }
+.ai-pulse {
+  display: inline-flex; align-items: center; gap: 10px;
+  background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.25);
+  border-radius: 100px; padding: 8px 20px;
+  font-size: 0.85rem; color: #4ADE80; font-weight: 500;
+}
+.pulse-dot { width: 8px; height: 8px; border-radius: 50%; background: #4ADE80; animation: pulse 1.5s ease infinite; }
+@keyframes pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.4; transform:scale(1.4); } }
+
+/* ── PRICING ── */
+.pricing {
+  padding: 100px 2rem;
+  background: var(--white);
+}
+.pricing-inner { max-width: 1000px; margin: 0 auto; }
+.pricing-header { text-align: center; margin-bottom: 4rem; }
+.pricing h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(2rem, 3.5vw, 3rem); margin-bottom: 1rem; }
+.pricing-sub { font-size: 1.1rem; color: var(--muted); }
+.plans { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+.plan {
+  border-radius: var(--radius); padding: 2.5rem 2rem;
+  border: 2px solid var(--grey2); position: relative;
+  background: #fff;
+}
+.plan.featured {
+  border-color: var(--orange);
+  background: linear-gradient(135deg, rgba(249,115,22,0.03) 0%, #fff 100%);
+  box-shadow: 0 16px 48px rgba(249,115,22,0.12);
+}
+.plan-badge {
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+  background: var(--orange); color: #fff;
+  padding: 4px 16px; border-radius: 100px; font-size: 0.75rem; font-weight: 700; white-space: nowrap;
+}
+.plan-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; margin-bottom: .25rem; }
+.plan-desc { font-size: 0.85rem; color: var(--muted); margin-bottom: 1.5rem; }
+.plan-price { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 3rem; line-height: 1; margin-bottom: .25rem; }
+.plan-price span { font-size: 1rem; font-weight: 400; color: var(--muted); }
+.plan-trial { font-size: 0.8rem; color: #22C55E; font-weight: 600; margin-bottom: 2rem; }
+.plan-feats { list-style: none; margin-bottom: 2rem; }
+.plan-feats li {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 7px 0; font-size: 0.9rem; color: var(--text); border-bottom: 1px solid var(--grey2);
+}
+.plan-feats li:last-child { border-bottom: none; }
+.plan-feats .check { color: #22C55E; font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+.plan-feats .cross { color: #CBD5E1; font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+.plan-btn {
+  display: block; text-align: center; padding: 13px;
+  border-radius: 10px; font-weight: 600; font-size: 0.95rem; text-decoration: none; transition: all .2s;
+}
+.plan-btn-primary { background: var(--orange); color: #fff; }
+.plan-btn-primary:hover { background: var(--orange-d); }
+.plan-btn-outline { border: 2px solid var(--grey2); color: var(--dark); }
+.plan-btn-outline:hover { border-color: var(--orange); color: var(--orange); }
+
+/* ── TESTIMONIALS ── */
+.testimonials {
+  padding: 100px 2rem;
+  background: var(--grey);
+}
+.testimonials-inner { max-width: 1100px; margin: 0 auto; }
+.testimonials-header { text-align: center; margin-bottom: 4rem; }
+.testimonials h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(1.8rem, 3vw, 2.5rem); margin-bottom: 1rem; }
+.testi-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+.testi-card {
+  background: #fff; border-radius: var(--radius); padding: 2rem;
+  border: 1px solid var(--grey2);
+}
+.testi-stars { color: #F59E0B; font-size: 0.9rem; margin-bottom: 1rem; }
+.testi-text { font-size: 0.92rem; color: var(--text); line-height: 1.7; margin-bottom: 1.5rem; font-style: italic; }
+.testi-author { display: flex; align-items: center; gap: 12px; }
+.testi-avatar {
+  width: 44px; height: 44px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 1rem; color: #fff; flex-shrink: 0;
+}
+.testi-name { font-weight: 600; font-size: 0.9rem; }
+.testi-job { font-size: 0.78rem; color: var(--muted); }
+
+/* ── FAQ ── */
+.faq {
+  padding: 80px 2rem;
+  background: var(--white);
+}
+.faq-inner { max-width: 720px; margin: 0 auto; }
+.faq-header { text-align: center; margin-bottom: 3rem; }
+.faq h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(1.8rem, 3vw, 2.5rem); }
+.faq-item { border-bottom: 1px solid var(--grey2); padding: 1.25rem 0; }
+.faq-q { font-weight: 600; font-size: 0.95rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
+.faq-q::after { content: '+'; font-size: 1.25rem; color: var(--orange); }
+.faq-a { font-size: 0.9rem; color: var(--muted); padding-top: 0.75rem; line-height: 1.7; }
+
+/* ── FINAL CTA ── */
+.final-cta {
+  padding: 120px 2rem;
+  background: var(--dark); text-align: center; position: relative; overflow: hidden;
+}
+.final-cta::before {
+  content: ''; position: absolute; inset: 0;
+  background: radial-gradient(ellipse 60% 60% at 50% 50%, rgba(249,115,22,0.15) 0%, transparent 70%);
+}
+.final-cta-inner { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; }
+.final-cta h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(2.2rem, 4vw, 3.5rem); color: #fff; margin-bottom: 1.25rem; line-height: 1.1; }
+.final-cta h2 em { font-style: normal; color: var(--orange); }
+.final-cta p { font-size: 1.1rem; color: #94A3B8; margin-bottom: 2.5rem; }
+.final-cta .btn-primary { font-size: 1.05rem; padding: 16px 36px; }
+.final-note { margin-top: 1.5rem; font-size: 0.82rem; color: #475569; }
+
+/* ── FOOTER ── */
+footer {
+  background: #0A0F1A; padding: 3rem 2rem;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.footer-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.1rem; color: #fff; }
+.footer-logo span { color: var(--orange); }
+.footer-links { display: flex; gap: 1.5rem; }
+.footer-links a { font-size: 0.82rem; color: #475569; text-decoration: none; }
+.footer-copy { font-size: 0.82rem; color: #475569; }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .hero-grid { grid-template-columns: 1fr; }
+  .hero-mockup { display: none; }
+  .pain-cards, .steps, .ai-cards, .plans, .testi-grid { grid-template-columns: 1fr; }
+  .feat-grid { grid-template-columns: 1fr; }
+  .nav-links { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">Artisan<span>Portal</span></a>
+  <div class="nav-links">
+    <a href="#pourquoi">Pourquoi ça marche</a>
+    <a href="#comment">Comment ça marche</a>
+    <a href="#tarifs">Tarifs</a>
+    <a href="#avis">Avis clients</a>
+  </div>
+  <a href="#tarifs" class="nav-cta">Essai gratuit 30 jours →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid">
+    <div>
+      <div class="hero-badge">🛠 Fait pour les artisans</div>
+      <h1>Vos clients arrêtent de vous appeler.<br><em>Vous arrêtez de tout répéter.</em></h1>
+      <p class="lead">
+        Donnez à chaque client un espace en ligne dédié à son chantier. Il suit l'avancement,
+        télécharge ses documents, pose ses questions — sans vous déranger.
+      </p>
+      <div class="hero-cta-group">
+        <a href="#tarifs" class="btn-primary">
+          Je veux essayer gratuitement
+          <span>→</span>
+        </a>
+      </div>
+      <p class="hero-note">
+        ✓ Sans engagement &nbsp;·&nbsp; ✓ 30 jours offerts &nbsp;·&nbsp; ✓ Opérationnel en 15 min
+      </p>
+    </div>
+
+    <!-- MOCKUP -->
+    <div class="hero-mockup">
+      <div class="mockup-bar">
+        <div class="dot" style="background:#FF5F57"></div>
+        <div class="dot" style="background:#FEBC2E"></div>
+        <div class="dot" style="background:#28C840"></div>
+        <div style="margin-left:8px; font-size:0.75rem; color:#475569;">Portail Client — Dupont Rénovation</div>
+      </div>
+      <div class="mockup-body">
+        <div class="mockup-head">
+          <div class="mockup-title">🏗 Rénovation cuisine — M. Martin</div>
+          <div class="status-pill">En cours</div>
+        </div>
+        <div class="progress-block">
+          <div class="progress-label">
+            <span>Avancement du chantier</span>
+            <span style="color:#FB923C;font-weight:700">65%</span>
+          </div>
+          <div class="progress-bar"><div class="progress-fill" style="width:65%"></div></div>
+        </div>
+        <div class="mockup-cards">
+          <div class="mockup-card">
+            <div class="mockup-card-icon">📄</div>
+            <div class="mockup-card-label">Documents</div>
+            <div class="mockup-card-val">4 fichiers</div>
+          </div>
+          <div class="mockup-card">
+            <div class="mockup-card-icon">📸</div>
+            <div class="mockup-card-label">Photos</div>
+            <div class="mockup-card-val">12 photos</div>
+          </div>
+          <div class="mockup-card">
+            <div class="mockup-card-icon">📅</div>
+            <div class="mockup-card-label">Fin prévue</div>
+            <div class="mockup-card-val">14 juin</div>
+          </div>
+          <div class="mockup-card">
+            <div class="mockup-card-icon">✅</div>
+            <div class="mockup-card-label">Jalons</div>
+            <div class="mockup-card-val">3 / 5</div>
+          </div>
+        </div>
+        <div class="mockup-msg">
+          <div class="mockup-msg-label">💬 Dernier message</div>
+          <div class="mockup-msg-text">"La pose du carrelage est terminée. Les meubles arrivent vendredi."</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PAIN -->
+<section class="pain" id="pourquoi">
+  <div class="pain-inner">
+    <div class="section-label">Le problème</div>
+    <h2>Vous êtes artisan, pas standardiste.</h2>
+    <p class="sub">Pourtant, vous perdez des heures chaque semaine à répondre aux mêmes questions. C'est fini.</p>
+    <div class="pain-cards">
+      <div class="pain-card">
+        <div class="pain-emoji">📞</div>
+        <h3>"C'est pour quand ?"</h3>
+        <p>Vos clients appellent pour savoir où en est leur chantier. Plusieurs fois par semaine. À n'importe quelle heure.</p>
+        <div class="highlight">2 à 3h perdues / semaine</div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-emoji">📁</div>
+        <h3>"Vous pouvez me renvoyer le devis ?"</h3>
+        <p>Les documents se perdent dans les emails. Vos clients vous redemandent les mêmes fichiers en boucle.</p>
+        <div class="highlight">Agacement des deux côtés</div>
+      </div>
+      <div class="pain-card">
+        <div class="pain-emoji">😤</div>
+        <h3>"On ne sait jamais ce qui se passe"</h3>
+        <p>Sans visibilité, vos clients stressent, imaginent le pire, et appellent encore plus. Ce manque de confiance vous coûte des avis négatifs.</p>
+        <div class="highlight">Réputation en jeu</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTION -->
+<section class="solution" id="comment">
+  <div class="solution-inner">
+    <div class="solution-header">
+      <div class="section-label">La solution</div>
+      <h2>Un portail privé pour chaque chantier.<br><em>En 3 clics.</em></h2>
+      <p class="sub">Vos clients ont leur propre espace en ligne. Ils trouvent tout, sans vous appeler.</p>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Créez le chantier</h3>
+        <p>Renseignez le nom du client, les dates, et l'adresse. C'est tout. Votre espace est prêt en 2 minutes.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Déposez vos documents et photos</h3>
+        <p>Glissez-déposez devis, factures et photos d'avancement. Tout est rangé automatiquement.</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Envoyez le lien à votre client</h3>
+        <p>Un clic, un email. Votre client accède à son portail sans créer de compte. Il voit tout, en temps réel.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features">
+  <div class="features-inner">
+    <div class="features-header">
+      <div class="section-label">Ce que vous gagnez</div>
+      <h2>Moins de stress. Plus de confiance.</h2>
+    </div>
+    <div class="feat-grid">
+      <div class="feat-item">
+        <div class="feat-icon">📄</div>
+        <div class="feat-body">
+          <h3>Tous les documents au même endroit</h3>
+          <p>Devis, factures, plans — votre client les retrouve en un clic, à n'importe quelle heure. Plus jamais "vous pouvez me renvoyer ça ?"</p>
+          <div class="feat-result">✓ Fini les emails perdus</div>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">📸</div>
+        <div class="feat-body">
+          <h3>L'avancement en photos</h3>
+          <p>Publiez vos photos de chantier. Votre client voit le travail évoluer. Il comprend la valeur de votre travail avant même la facture finale.</p>
+          <div class="feat-result">✓ Moins de litiges sur la qualité</div>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">📅</div>
+        <div class="feat-body">
+          <h3>Le planning visible par tous</h3>
+          <p>Affichez les grandes étapes du chantier. Votre client sait quand vous intervenez, quand c'est terminé. Plus de surprises.</p>
+          <div class="feat-result">✓ 60% moins d'appels de relance</div>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">💬</div>
+        <div class="feat-body">
+          <h3>Une messagerie centralisée</h3>
+          <p>Toutes les conversations liées au chantier en un seul endroit. Fini les SMS, les emails, les WhatsApp qui se mélangent.</p>
+          <div class="feat-result">✓ Zéro perte d'information</div>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">🔗</div>
+        <div class="feat-body">
+          <h3>Accès sans mot de passe pour votre client</h3>
+          <p>Vos clients n'ont pas à créer de compte. Un simple lien dans leur email, et ils sont sur leur portail. Aucune friction, aucun frein.</p>
+          <div class="feat-result">✓ 100% des clients utilisent le portail</div>
+        </div>
+      </div>
+      <div class="feat-item">
+        <div class="feat-icon">🎨</div>
+        <div class="feat-body">
+          <h3>À vos couleurs, avec votre logo</h3>
+          <p>Le portail affiche votre logo et vos couleurs. Vos clients voient un outil pro qui renforce votre image, pas un logiciel générique.</p>
+          <div class="feat-result">✓ Image professionnelle différenciante</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AI AGENTS -->
+<section class="ai-section">
+  <div class="ai-inner">
+    <div class="ai-badge">🤖 Nouvelle génération</div>
+    <h2>Un conseiller <em>disponible 24h/24</em><br>pour vous accompagner</h2>
+    <p class="sub">
+      Nos agents IA sont là pour répondre à vos questions, vous aider à démarrer, et vous guider
+      à chaque étape — exactement comme un commercial humain, mais disponible à 3h du matin si besoin.
+    </p>
+    <div class="ai-cards">
+      <div class="ai-card">
+        <div class="ai-card-icon">🚀</div>
+        <h4>Démarrage en douceur</h4>
+        <p>Votre conseiller IA vous accompagne lors de la configuration de votre premier chantier, étape par étape.</p>
+      </div>
+      <div class="ai-card">
+        <div class="ai-card-icon">💡</div>
+        <h4>Conseils personnalisés</h4>
+        <p>Il analyse votre activité et vous suggère les fonctionnalités les plus utiles pour votre métier.</p>
+      </div>
+      <div class="ai-card">
+        <div class="ai-card-icon">📞</div>
+        <h4>Support sans attente</h4>
+        <p>Plus besoin d'attendre en ligne. Posez votre question, obtenez une réponse en quelques secondes.</p>
+      </div>
+    </div>
+    <div class="ai-pulse">
+      <div class="pulse-dot"></div>
+      Agents IA disponibles maintenant
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing" id="tarifs">
+  <div class="pricing-inner">
+    <div class="pricing-header">
+      <div class="section-label">Tarifs</div>
+      <h2>Simple, sans surprise</h2>
+      <p class="pricing-sub">30 jours gratuits sur tous les abonnements. Aucune carte bancaire requise pour commencer.</p>
+    </div>
+    <div class="plans">
+      <!-- STARTER -->
+      <div class="plan">
+        <div class="plan-name">Débutant</div>
+        <div class="plan-desc">Pour tester sans risque</div>
+        <div class="plan-price">29€<span>/mois</span></div>
+        <div class="plan-trial">✓ 30 jours offerts</div>
+        <ul class="plan-feats">
+          <li><span class="check">✓</span> Jusqu'à 5 chantiers</li>
+          <li><span class="check">✓</span> Documents et photos</li>
+          <li><span class="check">✓</span> Portail client (lien magique)</li>
+          <li><span class="check">✓</span> Alertes email automatiques</li>
+          <li><span class="cross">✗</span> <span style="color:#CBD5E1">Planning et jalons</span></li>
+          <li><span class="cross">✗</span> <span style="color:#CBD5E1">SMS client</span></li>
+        </ul>
+        <a href="#" class="plan-btn plan-btn-outline">Commencer gratuitement</a>
+      </div>
+      <!-- PRO -->
+      <div class="plan featured">
+        <div class="plan-badge">⭐ Le plus choisi</div>
+        <div class="plan-name">Professionnel</div>
+        <div class="plan-desc">Pour les artisans actifs</div>
+        <div class="plan-price">59€<span>/mois</span></div>
+        <div class="plan-trial">✓ 30 jours offerts</div>
+        <ul class="plan-feats">
+          <li><span class="check">✓</span> Chantiers illimités</li>
+          <li><span class="check">✓</span> Documents, photos, planning</li>
+          <li><span class="check">✓</span> Portail à vos couleurs</li>
+          <li><span class="check">✓</span> SMS automatiques au client</li>
+          <li><span class="check">✓</span> Messagerie intégrée</li>
+          <li><span class="check">✓</span> Conseiller IA prioritaire</li>
+        </ul>
+        <a href="#" class="plan-btn plan-btn-primary">Je choisis Pro →</a>
+      </div>
+      <!-- BUSINESS -->
+      <div class="plan">
+        <div class="plan-name">Entreprise</div>
+        <div class="plan-desc">Pour les équipes</div>
+        <div class="plan-price">99€<span>/mois</span></div>
+        <div class="plan-trial">✓ 30 jours offerts</div>
+        <ul class="plan-feats">
+          <li><span class="check">✓</span> Tout le plan Pro</li>
+          <li><span class="check">✓</span> Plusieurs collaborateurs</li>
+          <li><span class="check">✓</span> Statistiques avancées</li>
+          <li><span class="check">✓</span> Support téléphonique</li>
+          <li><span class="check">✓</span> Accès API</li>
+          <li><span class="check">✓</span> Conseiller IA dédié</li>
+        </ul>
+        <a href="#" class="plan-btn plan-btn-outline">Nous contacter</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="testimonials" id="avis">
+  <div class="testimonials-inner">
+    <div class="testimonials-header">
+      <div class="section-label">Ils l'utilisent déjà</div>
+      <h2>Ce que disent les artisans</h2>
+    </div>
+    <div class="testi-grid">
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"Mes clients adorent. Je reçois 3 fois moins d'appels depuis que j'envoie le lien au démarrage de chaque chantier. Je me concentre enfin sur mon travail."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:#F97316">JD</div>
+          <div>
+            <div class="testi-name">Jean-David R.</div>
+            <div class="testi-job">Électricien — Lyon</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"J'ai eu un client qui m'a laissé un avis 5 étoiles en disant que j'étais 'le plombier le plus professionnel qu'il ait jamais eu'. C'est grâce au portail."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:#1D4ED8">MP</div>
+          <div>
+            <div class="testi-name">Marc-Pierre T.</div>
+            <div class="testi-job">Plombier — Bordeaux</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card">
+        <div class="testi-stars">★★★★★</div>
+        <p class="testi-text">"La mise en place a pris 20 minutes. Maintenant tous mes chantiers ont leur portail. Mes clients se sentent suivis et moi j'ai retrouvé mes soirées."</p>
+        <div class="testi-author">
+          <div class="testi-avatar" style="background:#059669">SB</div>
+          <div>
+            <div class="testi-name">Sophie B.</div>
+            <div class="testi-job">Entreprise de peinture — Nantes</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq">
+  <div class="faq-inner">
+    <div class="faq-header">
+      <div class="section-label">Questions fréquentes</div>
+      <h2>Tout ce que vous voulez savoir</h2>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Mon client doit-il créer un compte ?</div>
+      <div class="faq-a">Non. Votre client reçoit un simple lien par email. Il clique et accède directement à son espace. Aucun mot de passe, aucune inscription. C'est ce qu'on appelle un "lien magique".</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Combien de temps faut-il pour démarrer ?</div>
+      <div class="faq-a">15 minutes. Créez votre compte, renseignez votre premier chantier, uploadez un document, envoyez le lien à votre client. C'est tout. Notre conseiller IA vous guide si besoin.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Mes documents sont-ils en sécurité ?</div>
+      <div class="faq-a">Oui. Vos fichiers sont stockés sur des serveurs sécurisés en Europe. Seuls vous et votre client avez accès au portail. Chaque lien est unique et sécurisé.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Puis-je annuler à tout moment ?</div>
+      <div class="faq-a">Oui, sans engagement ni pénalité. Vous pouvez annuler votre abonnement quand vous voulez depuis votre espace. Vous gardez accès jusqu'à la fin de la période payée.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q">Ça fonctionne sur téléphone ?</div>
+      <div class="faq-a">Absolument. Artisan Portal fonctionne sur tous les appareils : ordinateur, tablette, smartphone. Vous pouvez uploader une photo de chantier directement depuis votre téléphone.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="final-cta">
+  <div class="final-cta-inner">
+    <h2>Prêt à <em>reprendre vos soirées</em> ?</h2>
+    <p>Rejoignez des centaines d'artisans qui ont arrêté de courir après leurs clients. Essai gratuit 30 jours, sans carte bancaire.</p>
+    <a href="#" class="btn-primary">Je veux mon portail gratuit →</a>
+    <p class="final-note">Un conseiller IA vous répond en moins de 30 secondes · Disponible 24h/24</p>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Artisan<span>Portal</span></div>
+  <div class="footer-links">
+    <a href="#">Mentions légales</a>
+    <a href="#">CGV</a>
+    <a href="#">Confidentialité</a>
+    <a href="#">Contact</a>
+  </div>
+  <div class="footer-copy">© 2026 Artisan Portal — Tous droits réservés</div>
+</footer>
+
+</body>
+</html>
