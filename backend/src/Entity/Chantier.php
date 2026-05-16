@@ -11,6 +11,7 @@ use ApiPlatform\Metadata\GetCollection;
 use ApiPlatform\Metadata\Patch;
 use ApiPlatform\Metadata\Post;
 use App\Enum\ChantierStatusEnum;
+use App\State\TenantAwareProcessor;
 use App\Repository\ChantierRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
@@ -26,7 +27,7 @@ use Symfony\Component\Uid\Uuid;
     operations: [
         new GetCollection(security: "is_granted('ROLE_USER')"),
         new Get(security: "is_granted('view', object)"),
-        new Post(security: "is_granted('ROLE_USER')"),
+        new Post(security: "is_granted('ROLE_USER')", processor: TenantAwareProcessor::class),
         new Patch(security: "is_granted('edit', object)"),
         new Delete(security: "is_granted('delete', object)"),
     ]

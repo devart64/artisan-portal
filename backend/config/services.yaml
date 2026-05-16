@@ -54,3 +54,9 @@ services:
             $corsAllowOrigin: '%env(default::CORS_ALLOW_ORIGIN)%'
         tags:
             - { name: kernel.event_subscriber }
+
+    App\State\TenantAwareProcessor:
+        arguments:
+            $inner: '@api_platform.doctrine.orm.state.persist_processor'
+        tags:
+            - { name: api_platform.state_processor }
