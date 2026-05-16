@@ -59,6 +59,15 @@ class DocumentController extends AbstractController
             return $this->json(['error' => 'No file uploaded.'], Response::HTTP_BAD_REQUEST);
         }
 
+        $allowedMimes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+        if (!in_array($uploadedFile->getMimeType(), $allowedMimes, true)) {
+            return $this->json(['error' => 'Type de fichier non autorisé. Formats acceptés : PDF, JPG, PNG, WEBP, DOC, DOCX.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+        $maxSize = 20 * 1024 * 1024; // 20MB
+        if ($uploadedFile->getSize() > $maxSize) {
+            return $this->json(['error' => 'Fichier trop volumineux. Maximum 20MB.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
         $label = $request->request->get('label');
         $typeValue = $request->request->get('type', DocumentTypeEnum::AUTRE->value);
 
@@ -187,6 +196,15 @@ class DocumentController extends AbstractController
         $uploadedFile = $request->files->get('file');
         if ($uploadedFile === null) {
             return $this->json(['error' => 'No file uploaded.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/heic'];
+        if (!in_array($uploadedFile->getMimeType(), $allowedMimes, true)) {
+            return $this->json(['error' => 'Format image non autorisé. Formats acceptés : JPG, PNG, WEBP, HEIC.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+        $maxSize = 10 * 1024 * 1024; // 10MB
+        if ($uploadedFile->getSize() > $maxSize) {
+            return $this->json(['error' => 'Image trop volumineuse. Maximum 10MB.'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
         $caption = $request->request->get('caption');

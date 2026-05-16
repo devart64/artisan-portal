@@ -43,4 +43,19 @@ class UserRepository extends ServiceEntityRepository implements PasswordUpgrader
             $this->getEntityManager()->flush();
         }
     }
+
+    public function countByTenant(): array
+    {
+        $result = $this->createQueryBuilder('u')
+            ->select('IDENTITY(u.tenant) as tenantId, COUNT(u.id) as userCount')
+            ->groupBy('u.tenant')
+            ->getQuery()
+            ->getResult();
+
+        $map = [];
+        foreach ($result as $row) {
+            $map[$row['tenantId']] = (int) $row['userCount'];
+        }
+        return $map;
+    }
 }

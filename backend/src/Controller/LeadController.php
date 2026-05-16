@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\Lead;
 use App\Enum\LeadStatusEnum;
 use App\Repository\LeadRepository;
+use App\Service\TenantContext;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -22,16 +23,18 @@ class LeadController extends AbstractController
         private LeadRepository $leads,
         private EntityManagerInterface $em,
         private SerializerInterface $serializer,
+        private TenantContext $tenantContext,
     ) {}
 
     #[Route('', methods: ['GET'])]
     public function index(Request $request): JsonResponse
     {
+        $tenant = $this->tenantContext->getTenant();
         $status = $request->query->get('status');
         if ($status && $statusEnum = LeadStatusEnum::tryFrom($status)) {
-            $leads = $this->leads->findByStatus($statusEnum);
+            $leads = $this->leads->findBy(['tenant' => $tenant, 'status' => $statusEnum], ['createdAt' => 'DESC']);
         } else {
-            $leads = $this->leads->findBy([], ['createdAt' => 'DESC'], 100);
+            $leads = $this->leads->findBy(['tenant' => $tenant], ['createdAt' => 'DESC'], 100);
         }
 
         return $this->json($leads, context: ['groups' => ['lead:read']]);
@@ -40,9 +43,11 @@ class LeadController extends AbstractController
     #[Route('', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
+        $tenant = $this->tenantContext->getTenant();
         $data = json_decode($request->getContent(), true);
 
         $lead = new Lead();
+        $lead->setTenant($tenant);
         $lead->setName($data['name'] ?? '');
         $lead->setEmail($data['email'] ?? null);
         $lead->setPhone($data['phone'] ?? null);
@@ -61,8 +66,12 @@ class LeadController extends AbstractController
     #[Route('/{id}', methods: ['PATCH'])]
     public function update(string $id, Request $request): JsonResponse
     {
+        $tenant = $this->tenantContext->getTenant();
         $lead = $this->leads->find($id);
         if (!$lead) return $this->json(['error' => 'Not found'], 404);
+        if (!$lead->getTenant()->getId()->equals($tenant->getId())) {
+            return $this->json(['error' => 'Not found'], 404);
+        }
 
         $data = json_decode($request->getContent(), true);
 
@@ -85,6 +94,7 @@ class LeadController extends AbstractController
     #[Route('/pending', methods: ['GET'])]
     public function pending(): JsonResponse
     {
-        return $this->json($this->leads->findPending(), context: ['groups' => ['lead:read']]);
+        $tenant = $this->tenantContext->getTenant();
+        return $this->json($this->leads->findPending($tenant), context: ['groups' => ['lead:read']]);
     }
 }

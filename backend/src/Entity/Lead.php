@@ -2,6 +2,7 @@
 declare(strict_types=1);
 namespace App\Entity;
 
+use App\Entity\Tenant;
 use App\Enum\LeadStatusEnum;
 use App\Repository\LeadRepository;
 use Doctrine\ORM\Mapping as ORM;
@@ -56,6 +57,10 @@ class Lead
     #[Groups(['lead:read', 'lead:write'])]
     private ?string $notes = null;
 
+    #[ORM\ManyToOne(targetEntity: Tenant::class)]
+    #[ORM\JoinColumn(nullable: false, onDelete: 'CASCADE')]
+    private Tenant $tenant;
+
     #[ORM\Column(nullable: true)]
     #[Groups(['lead:read'])]
     private ?\DateTimeImmutable $lastContactedAt = null;
@@ -69,6 +74,9 @@ class Lead
     {
         $this->createdAt = new \DateTimeImmutable();
     }
+
+    public function getTenant(): Tenant { return $this->tenant; }
+    public function setTenant(Tenant $tenant): static { $this->tenant = $tenant; return $this; }
 
     public function getId(): ?string { return $this->id; }
     public function getName(): string { return $this->name; }

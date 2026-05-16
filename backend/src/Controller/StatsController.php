@@ -32,7 +32,11 @@ class StatsController extends AbstractController
 
         $chantiers     = $this->chantierRepository->findBy(['tenant' => $tenant]);
         $clients       = $this->clientRepository->findBy(['tenant' => $tenant]);
-        $documents     = $this->documentRepository->findBy(['tenant' => $tenant]);
+        $documents     = $this->documentRepository->createQueryBuilder('d')
+            ->join('d.chantier', 'c')
+            ->where('c.tenant = :tenant')
+            ->setParameter('tenant', $tenant)
+            ->getQuery()->getResult();
 
         $byStatus = [];
         foreach (ChantierStatusEnum::cases() as $case) {
@@ -50,7 +54,7 @@ class StatsController extends AbstractController
             'clients'           => count($clients),
             'documents'         => count($documents),
             'documentsSigned'   => count($signed),
-            'leads'             => count($this->leadRepository->findBy(['tenant' => $tenant])),
+            'leads'             => $this->leadRepository->count(['tenant' => $tenant]),
         ]);
     }
 }

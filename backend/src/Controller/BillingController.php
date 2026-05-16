@@ -9,6 +9,7 @@ use App\Service\StripeService;
 use App\Service\TenantContext;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -49,7 +50,7 @@ class BillingController extends AbstractController
     }
 
     #[Route('/stripe/checkout', name: 'stripe_checkout', methods: ['POST'])]
-    public function checkout(): JsonResponse
+    public function checkout(Request $request): JsonResponse
     {
         $tenant = $this->tenantContext->getTenant();
 
@@ -60,7 +61,7 @@ class BillingController extends AbstractController
             'business' => $_ENV['STRIPE_PRICE_BUSINESS']  ?? '',
         ];
 
-        $body    = json_decode(file_get_contents('php://input') ?: '{}', true);
+        $body    = json_decode($request->getContent() ?: '{}', true);
         $plan    = $body['plan'] ?? 'starter';
         $priceId = $planPrices[$plan] ?? '';
 

@@ -6,7 +6,6 @@ namespace App\Controller;
 
 use App\Entity\Chantier;
 use App\Entity\Message;
-use App\Repository\ChantierRepository;
 use App\Repository\MessageRepository;
 use App\Service\TenantContext;
 use Doctrine\ORM\EntityManagerInterface;
@@ -22,7 +21,6 @@ class MessageController extends AbstractController
 {
     public function __construct(
         private readonly TenantContext $tenantContext,
-        private readonly ChantierRepository $chantierRepository,
         private readonly MessageRepository $messageRepository,
         private readonly EntityManagerInterface $em,
     ) {}
@@ -40,30 +38,20 @@ class MessageController extends AbstractController
         $tenant = $this->tenantContext->getTenant();
         $unreadOnly = $request->query->get('unread') === 'true';
 
-        $chantiers = $this->chantierRepository->findBy(['tenant' => $tenant]);
+        $rows = $unreadOnly
+            ? $this->messageRepository->findUnreadClientMessagesByTenant($tenant)
+            : $this->messageRepository->findAllByTenant($tenant);
 
-        $messages = [];
-        foreach ($chantiers as $chantier) {
-            $rows = $unreadOnly
-                ? $this->messageRepository->findUnreadClientMessages($chantier)
-                : $this->messageRepository->findByChantier($chantier);
-
-            foreach ($rows as $msg) {
-                $messages[] = [
-                    'id'          => $msg->getId()->toString(),
-                    'chantierId'  => $chantier->getId()->toString(),
-                    'chantierTitle' => $chantier->getTitle(),
-                    'senderType'  => $msg->getSenderType(),
-                    'senderName'  => $msg->getSenderName(),
-                    'content'     => $msg->getContent(),
-                    'read'        => $msg->isRead(),
-                    'createdAt'   => $msg->getCreatedAt()->format(\DateTimeInterface::ATOM),
-                ];
-            }
-        }
-
-        // Sort by date desc
-        usort($messages, static fn ($a, $b) => strcmp($b['createdAt'], $a['createdAt']));
+        $messages = array_map(static fn ($msg) => [
+            'id'            => $msg->getId()->toString(),
+            'chantierId'    => $msg->getChantier()->getId()->toString(),
+            'chantierTitle' => $msg->getChantier()->getTitle(),
+            'senderType'    => $msg->getSenderType(),
+            'senderName'    => $msg->getSenderName(),
+            'content'       => $msg->getContent(),
+            'read'          => $msg->isRead(),
+            'createdAt'     => $msg->getCreatedAt()->format(\DateTimeInterface::ATOM),
+        ], $rows);
 
         return $this->json($messages);
     }
@@ -74,7 +62,7 @@ class MessageController extends AbstractController
      * Sends a message from the authenticated artisan on a given chantier.
      * The chantier must belong to the current tenant (enforced via 'view' voter).
      */
-    #[Route('/api/chantiers/{id}/messages', name: 'chantier_message_send', methods: ['POST'])]
+    #[Route('/chantiers/{id}/messages', name: 'chantier_message_post', methods: ['POST'])]
     public function send(string $id, Request $request): JsonResponse
     {
         $chantier = $this->em->find(Chantier::class, $id);

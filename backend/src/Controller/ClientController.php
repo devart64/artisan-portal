@@ -68,6 +68,9 @@ class ClientController extends AbstractController
 
         if (isset($data['email'])) {
             $email = trim((string) $data['email']);
+            if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return $this->json(['error' => 'Format d\'email invalide.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
             $client->setEmail($email !== '' ? $email : null);
         }
 
@@ -133,6 +136,9 @@ class ClientController extends AbstractController
 
         if (array_key_exists('email', $data)) {
             $email = ($data['email'] !== null) ? trim((string) $data['email']) : null;
+            if (!empty($email) && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                return $this->json(['error' => 'Format d\'email invalide.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
             $client->setEmail(($email !== null && $email !== '') ? $email : null);
         }
 

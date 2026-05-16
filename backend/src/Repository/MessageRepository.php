@@ -6,6 +6,7 @@ namespace App\Repository;
 
 use App\Entity\Chantier;
 use App\Entity\Message;
+use App\Entity\Tenant;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -54,6 +55,36 @@ class MessageRepository extends ServiceEntityRepository
             ->setParameter('chantier', $chantier)
             ->setParameter('type', 'client')
             ->orderBy('m.createdAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    /** @return Message[] */
+    public function findAllByTenant(Tenant $tenant, int $limit = 20): array
+    {
+        return $this->createQueryBuilder('m')
+            ->join('m.chantier', 'c')
+            ->addSelect('c')
+            ->where('c.tenant = :tenant')
+            ->setParameter('tenant', $tenant)
+            ->orderBy('m.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /** @return Message[] Messages non lus par tenant (senderType = 'client') */
+    public function findUnreadClientMessagesByTenant(Tenant $tenant): array
+    {
+        return $this->createQueryBuilder('m')
+            ->join('m.chantier', 'c')
+            ->addSelect('c')
+            ->where('c.tenant = :tenant')
+            ->andWhere('m.senderType = :type')
+            ->andWhere('m.read = false')
+            ->setParameter('tenant', $tenant)
+            ->setParameter('type', 'client')
+            ->orderBy('m.createdAt', 'DESC')
             ->getQuery()
             ->getResult();
     }

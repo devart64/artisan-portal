@@ -69,8 +69,9 @@ class PushController extends AbstractController
         $data     = json_decode($request->getContent(), true);
         $endpoint = $data['endpoint'] ?? '';
 
+        $tenant = $this->tenantContext->getTenant();
         $sub = $this->subscriptionRepository->findOneBy(['endpoint' => $endpoint]);
-        if ($sub !== null) {
+        if ($sub !== null && $sub->getTenant()->getId()->equals($tenant->getId())) {
             $this->em->remove($sub);
             $this->em->flush();
         }

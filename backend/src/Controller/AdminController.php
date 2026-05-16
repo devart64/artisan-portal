@@ -30,6 +30,7 @@ class AdminController extends AbstractController
     public function tenants(): JsonResponse
     {
         $tenants = $this->tenantRepository->findAll();
+        $userCounts = $this->userRepository->countByTenant();
 
         return $this->json(array_map(fn($t) => [
             'id'          => $t->getId()->toString(),
@@ -39,7 +40,7 @@ class AdminController extends AbstractController
             'planStatus'  => $t->getPlanStatus()->value,
             'trialEndsAt' => $t->getTrialEndsAt()?->format('c'),
             'createdAt'   => $t->getCreatedAt()->format('c'),
-            'userCount'   => count($this->userRepository->findBy(['tenant' => $t])),
+            'userCount'   => $userCounts[$t->getId()->toString()] ?? 0,
         ], $tenants));
     }
 

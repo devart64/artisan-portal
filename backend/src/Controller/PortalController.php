@@ -271,6 +271,10 @@ class PortalController extends AbstractController
             return $this->json(['error' => 'Nom du signataire et signature requis'], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
+        if (strlen($signatureData) > 500_000) {
+            return $this->json(['error' => 'Données de signature trop volumineuses.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
         // Stocker l'image de signature sur S3
         if (str_starts_with($signatureData, 'data:image/png;base64,')) {
             $signatureData = substr($signatureData, strlen('data:image/png;base64,'));
@@ -278,11 +282,17 @@ class PortalController extends AbstractController
         $pngData = base64_decode($signatureData);
         if ($pngData) {
             $tmpFile = tempnam(sys_get_temp_dir(), 'sig_') . '.png';
-            file_put_contents($tmpFile, $pngData);
-            $uploaded = new UploadedFile(
-                $tmpFile, 'signature.png', 'image/png', null, true
-            );
-            $this->fileUploadService->upload($uploaded, "signatures/{$documentId}");
+            try {
+                file_put_contents($tmpFile, $pngData);
+                $uploaded = new UploadedFile(
+                    $tmpFile, 'signature.png', 'image/png', null, true
+                );
+                $this->fileUploadService->upload($uploaded, "signatures/{$documentId}");
+            } finally {
+                if (isset($tmpFile) && file_exists($tmpFile)) {
+                    @unlink($tmpFile);
+                }
+            }
         }
 
         // Mettre à jour le document

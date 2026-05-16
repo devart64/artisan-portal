@@ -18,6 +18,8 @@ use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
+use Symfony\Component\RateLimiter\RateLimiterFactory;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -35,6 +37,8 @@ class AuthController extends AbstractController
         private readonly MailerInterface $mailer,
         private readonly Environment $twig,
         private readonly StripeService $stripeService,
+        #[Autowire(service: 'limiter.auth_login')]
+        private readonly RateLimiterFactory $authLimiter,
     ) {}
 
     #[Route('/register', name: 'auth_register', methods: ['POST'])]
@@ -145,6 +149,11 @@ class AuthController extends AbstractController
         UserRepository $userRepository,
         CacheInterface $cache,
     ): JsonResponse {
+        $limiter = $this->authLimiter->create($request->getClientIp() ?? 'unknown');
+        if (!$limiter->consume(1)->isAccepted()) {
+            return $this->json(['error' => 'Trop de tentatives. Réessayez dans 15 minutes.'], Response::HTTP_TOO_MANY_REQUESTS);
+        }
+
         $data  = json_decode($request->getContent(), true);
         $email = trim($data['email'] ?? '');
 
@@ -187,6 +196,11 @@ class AuthController extends AbstractController
         UserRepository $userRepository,
         CacheInterface $cache,
     ): JsonResponse {
+        $limiter = $this->authLimiter->create($request->getClientIp() ?? 'unknown');
+        if (!$limiter->consume(1)->isAccepted()) {
+            return $this->json(['error' => 'Trop de tentatives. Réessayez dans 15 minutes.'], Response::HTTP_TOO_MANY_REQUESTS);
+        }
+
         $data     = json_decode($request->getContent(), true);
         $token    = trim($data['token'] ?? '');
         $password = trim($data['password'] ?? '');
@@ -222,6 +236,10 @@ class AuthController extends AbstractController
         $user = $userRepository->findOneBy(['invitationToken' => $token]);
         if ($user === null) {
             return $this->json(['error' => 'Lien invalide ou expiré.'], Response::HTTP_NOT_FOUND);
+        }
+
+        if ($user->getInvitedAt() !== null && $user->getInvitedAt() < new \DateTimeImmutable('-7 days')) {
+            return $this->json(['error' => 'Ce lien d\'invitation a expiré.'], Response::HTTP_GONE);
         }
 
         $data     = json_decode($request->getContent(), true);
