@@ -14,6 +14,7 @@ use App\Repository\JalonRepository;
 use App\Repository\MessageRepository;
 use App\Repository\PhotoRepository;
 use App\Security\ClientUser;
+use App\Service\AuditService;
 use App\Service\FileUploadService;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
@@ -37,6 +38,7 @@ class PortalController extends AbstractController
         private readonly FileUploadService $fileUploadService,
         private readonly NotificationService $notificationService,
         private readonly EntityManagerInterface $entityManager,
+        private readonly AuditService $auditService,
     ) {}
 
     /**
@@ -289,6 +291,16 @@ class PortalController extends AbstractController
         $document->setSignerName($signerName);
         $document->setSignerIp($request->getClientIp() ?? '');
         $this->entityManager->flush();
+
+        // Audit log
+        $signerIp = $request->getClientIp() ?? '';
+        $this->auditService->log(
+            $document->getChantier()->getTenant(),
+            'document.signed',
+            'document',
+            $document->getId()->toString(),
+            ['signer_name' => $signerName, 'signer_ip' => $signerIp],
+        );
 
         // Notifier l'artisan
         $this->notificationService->notifyDocumentSigned($document, $chantier, $signerName);

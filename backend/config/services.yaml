@@ -60,6 +60,16 @@ services:
             $stripePricePro: '%env(STRIPE_PRICE_PRO)%'
             $stripePriceBusiness: '%env(STRIPE_PRICE_BUSINESS)%'
 
+    App\Service\PushService:
+        arguments:
+            $vapidPublicKey:  '%env(VAPID_PUBLIC_KEY)%'
+            $vapidPrivateKey: '%env(VAPID_PRIVATE_KEY)%'
+            $vapidSubject:    '%env(VAPID_SUBJECT)%'
+
+    App\Controller\PushController:
+        arguments:
+            $vapidPublicKey: '%env(VAPID_PUBLIC_KEY)%'
+
     App\EventSubscriber\CorsSubscriber:
         arguments:
             $corsAllowOrigin: '%env(default::CORS_ALLOW_ORIGIN)%'

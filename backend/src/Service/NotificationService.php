@@ -28,6 +28,7 @@ class NotificationService
         private readonly string $twilioAccountSid,
         private readonly string $twilioAuthToken,
         private readonly string $twilioPhoneNumber,
+        private readonly PushService $pushService,
     ) {}
 
     /**
@@ -186,6 +187,13 @@ class NotificationService
         } catch (\Throwable) {
             // Ne pas bloquer si l'email échoue
         }
+
+        $this->pushService->sendToTenant(
+            $document->getChantier()->getTenant(),
+            'Document signé',
+            $document->getSignerName() . ' a signé ' . $document->getLabel(),
+            '/chantiers/' . $document->getChantier()->getId()->toString() . '/documents',
+        );
 
         $this->create(
             $chantier->getTenant(),

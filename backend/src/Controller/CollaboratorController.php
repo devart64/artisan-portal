@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\User;
 use App\Enum\UserRoleEnum;
 use App\Repository\UserRepository;
+use App\Service\AuditService;
 use App\Service\TenantContext;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -32,6 +33,7 @@ class CollaboratorController extends AbstractController
         private readonly Environment $twig,
         #[Autowire('%env(FRONTEND_URL)%')]
         private readonly string $frontendUrl,
+        private readonly AuditService $auditService,
     ) {}
 
     #[Route('', name: 'team_list', methods: ['GET'])]
@@ -80,6 +82,8 @@ class CollaboratorController extends AbstractController
 
         $this->em->persist($user);
         $this->em->flush();
+
+        $this->auditService->log($tenant, 'team.invited', 'user', $user->getId()->toString(), ['email' => $email]);
 
         $html = $this->twig->render('emails/collaborator_invite.html.twig', [
             'tenant_name'  => $tenant->getName(),

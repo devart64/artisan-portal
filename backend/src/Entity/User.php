@@ -45,6 +45,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'datetime_immutable', nullable: true)]
     private ?\DateTimeImmutable $invitedAt = null;
 
+    #[ORM\Column(type: 'string', length: 64, nullable: true)]
+    private ?string $totpSecret = null;
+
+    #[ORM\Column(type: 'boolean')]
+    private bool $totpEnabled = false;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
@@ -147,6 +153,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->invitedAt = $invitedAt;
         return $this;
     }
+
+    public function getTotpSecret(): ?string { return $this->totpSecret; }
+    public function setTotpSecret(?string $s): static { $this->totpSecret = $s; return $this; }
+    public function isTotpEnabled(): bool { return $this->totpEnabled; }
+    public function setTotpEnabled(bool $e): static { $this->totpEnabled = $e; return $this; }
 
     public function getRoles(): array
     {
