@@ -2,7 +2,7 @@ export type Plan = 'starter' | 'pro' | 'business'
 export type PlanStatus = 'trialing' | 'active' | 'past_due' | 'canceled'
 export type ChantierStatus = 'en_attente' | 'en_cours' | 'termine' | 'annule'
 export type DocumentType = 'devis' | 'facture' | 'plan' | 'autre'
-export type DocumentStatus = 'en_attente' | 'accepte' | 'refuse' | 'paye' | 'en_retard'
+export type DocumentStatus = 'en_attente' | 'accepte' | 'refuse' | 'paye' | 'en_retard' | 'signe'
 
 export interface Tenant {
   id: string
@@ -33,6 +33,8 @@ export interface Document {
   label: string
   status: DocumentStatus | null
   createdAt: string
+  signedAt?: string
+  signerName?: string
 }
 
 export interface Photo {

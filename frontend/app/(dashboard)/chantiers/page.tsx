@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { ChantierCard } from '@/components/chantier/ChantierCard'
 import { apiFetch } from '@/lib/api'
 import type { Chantier, ChantierStatus } from '@/lib/types'
+import PlanLimitBanner from '@/components/shared/PlanLimitBanner'
 
 const statusFilters: { value: ChantierStatus | 'all'; label: string }[] = [
   { value: 'all', label: 'Tous' },
@@ -29,7 +30,10 @@ interface ChantiersPageProps {
 export default async function ChantiersPage({ searchParams }: ChantiersPageProps) {
   const params = await searchParams
   const activeFilter = params.status ?? 'all'
-  const chantiers = await getChantiers(activeFilter)
+  const [chantiers, billing] = await Promise.all([
+    getChantiers(activeFilter),
+    apiFetch<{ remainingChantiers: number | null }>('/api/billing').catch(() => null),
+  ])
 
   return (
     <div className="space-y-6">
@@ -48,6 +52,11 @@ export default async function ChantiersPage({ searchParams }: ChantiersPageProps
           </Link>
         </Button>
       </div>
+
+      {/* Plan limit banner */}
+      {billing?.remainingChantiers !== null && billing?.remainingChantiers !== undefined && (
+        <PlanLimitBanner remaining={billing.remainingChantiers} />
+      )}
 
       {/* Filters */}
       <div className="flex flex-wrap gap-2">

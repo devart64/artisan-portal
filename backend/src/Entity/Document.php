@@ -38,6 +38,15 @@ class Document
     #[ORM\Column(type: 'string', enumType: DocumentStatusEnum::class, nullable: true)]
     private ?DocumentStatusEnum $status = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?\DateTimeImmutable $signedAt = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $signerName = null;
+
+    #[ORM\Column(length: 45, nullable: true)]
+    private ?string $signerIp = null;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
@@ -117,5 +126,38 @@ class Document
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function getSignedAt(): ?\DateTimeImmutable
+    {
+        return $this->signedAt;
+    }
+
+    public function setSignedAt(?\DateTimeImmutable $signedAt): static
+    {
+        $this->signedAt = $signedAt;
+        return $this;
+    }
+
+    public function getSignerName(): ?string
+    {
+        return $this->signerName;
+    }
+
+    public function setSignerName(?string $signerName): static
+    {
+        $this->signerName = $signerName;
+        return $this;
+    }
+
+    public function getSignerIp(): ?string
+    {
+        return $this->signerIp;
+    }
+
+    public function setSignerIp(?string $signerIp): static
+    {
+        $this->signerIp = $signerIp;
+        return $this;
     }
 }

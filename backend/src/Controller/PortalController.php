@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Entity\Document;
 use App\Entity\Message;
+use App\Entity\User;
+use App\Enum\DocumentStatusEnum;
 use App\Repository\ClientTokenRepository;
 use App\Repository\DocumentRepository;
 use App\Repository\JalonRepository;
@@ -15,6 +18,7 @@ use App\Service\FileUploadService;
 use App\Service\NotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -233,5 +237,67 @@ class PortalController extends AbstractController
             'read'       => $message->isRead(),
             'createdAt'  => $message->getCreatedAt()->format(\DateTimeInterface::ATOM),
         ], Response::HTTP_CREATED);
+    }
+
+    /**
+     * POST /api/portal/{token}/documents/{documentId}/sign
+     * Client signs a document electronically.
+     */
+    #[Route('/{token}/documents/{documentId}/sign', name: 'portal_document_sign', methods: ['POST'])]
+    public function signDocument(
+        string $token,
+        string $documentId,
+        Request $request,
+        #[CurrentUser] ClientUser $clientUser,
+    ): JsonResponse {
+        $chantier = $clientUser->getChantier();
+
+        $document = $this->entityManager->find(Document::class, $documentId);
+        if (!$document || $document->getChantier()->getId() !== $chantier->getId()) {
+            return $this->json(['error' => 'Document introuvable'], Response::HTTP_NOT_FOUND);
+        }
+
+        if ($document->getStatus() === DocumentStatusEnum::Signe) {
+            return $this->json(['error' => 'Document déjà signé'], Response::HTTP_CONFLICT);
+        }
+
+        $data          = json_decode($request->getContent(), true);
+        $signerName    = trim($data['signerName'] ?? '');
+        $signatureData = $data['signatureData'] ?? ''; // base64 PNG
+
+        if (!$signerName || !$signatureData) {
+            return $this->json(['error' => 'Nom du signataire et signature requis'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        // Stocker l'image de signature sur S3
+        if (str_starts_with($signatureData, 'data:image/png;base64,')) {
+            $signatureData = substr($signatureData, strlen('data:image/png;base64,'));
+        }
+        $pngData = base64_decode($signatureData);
+        if ($pngData) {
+            $tmpFile = tempnam(sys_get_temp_dir(), 'sig_') . '.png';
+            file_put_contents($tmpFile, $pngData);
+            $uploaded = new UploadedFile(
+                $tmpFile, 'signature.png', 'image/png', null, true
+            );
+            $this->fileUploadService->upload($uploaded, "signatures/{$documentId}");
+        }
+
+        // Mettre à jour le document
+        $document->setStatus(DocumentStatusEnum::Signe);
+        $document->setSignedAt(new \DateTimeImmutable());
+        $document->setSignerName($signerName);
+        $document->setSignerIp($request->getClientIp() ?? '');
+        $this->entityManager->flush();
+
+        // Notifier l'artisan
+        $this->notificationService->notifyDocumentSigned($document, $chantier, $signerName);
+
+        return $this->json([
+            'id'         => $document->getId(),
+            'status'     => $document->getStatus()->value,
+            'signedAt'   => $document->getSignedAt()?->format(\DateTimeInterface::ATOM),
+            'signerName' => $document->getSignerName(),
+        ]);
     }
 }

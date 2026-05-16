@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Service\PlanLimitChecker;
 use App\Service\StripeService;
 use App\Service\TenantContext;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -18,6 +19,7 @@ class BillingController extends AbstractController
     public function __construct(
         private TenantContext $tenantContext,
         private StripeService $stripeService,
+        private PlanLimitChecker $planLimitChecker,
     ) {}
 
     #[Route('/billing', name: 'billing_info', methods: ['GET'])]
@@ -26,11 +28,12 @@ class BillingController extends AbstractController
         $tenant = $this->tenantContext->getTenant();
 
         $data = [
-            'plan'             => $tenant->getPlan()->value,
-            'planStatus'       => $tenant->getPlanStatus()->value,
-            'stripeCustomerId' => $tenant->getStripeCustomerId(),
-            'stripePortalUrl'  => null,
-            'nextBillingDate'  => null,
+            'plan'                => $tenant->getPlan()->value,
+            'planStatus'          => $tenant->getPlanStatus()->value,
+            'stripeCustomerId'    => $tenant->getStripeCustomerId(),
+            'stripePortalUrl'     => null,
+            'nextBillingDate'     => null,
+            'remainingChantiers'  => $this->planLimitChecker->getRemainingChantiers($tenant),
         ];
 
         if ($tenant->getStripeCustomerId()) {

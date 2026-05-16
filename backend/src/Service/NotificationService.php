@@ -9,6 +9,7 @@ use App\Entity\Client;
 use App\Entity\Document;
 use App\Entity\User;
 use App\Repository\ClientTokenRepository;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
@@ -21,6 +22,7 @@ class NotificationService
         private readonly Environment $twig,
         private readonly MagicLinkService $magicLinkService,
         private readonly ClientTokenRepository $clientTokenRepository,
+        private readonly EntityManagerInterface $em,
         private readonly string $twilioAccountSid,
         private readonly string $twilioAuthToken,
         private readonly string $twilioPhoneNumber,
@@ -150,6 +152,38 @@ class NotificationService
             ->html($htmlContent);
 
         $this->mailer->send($email);
+    }
+
+    /**
+     * Notify artisan users of the tenant that a document has been electronically signed.
+     */
+    public function notifyDocumentSigned(
+        Document $document,
+        Chantier $chantier,
+        string $signerName,
+    ): void {
+        $tenant = $chantier->getTenant();
+        try {
+            $htmlContent = $this->twig->render('emails/document_signed.html.twig', [
+                'document_label' => $document->getLabel(),
+                'signer_name'    => $signerName,
+                'signed_at'      => (new \DateTimeImmutable())->format('d/m/Y à H:i'),
+                'chantier_title' => $chantier->getTitle(),
+            ]);
+
+            $users = $this->em->getRepository(User::class)->findBy(['tenant' => $tenant]);
+            foreach ($users as $user) {
+                $email = (new Email())
+                    ->from(new Address('noreply@artisan-portal.fr', 'Artisan Portal'))
+                    ->to(new Address($user->getEmail()))
+                    ->subject("✅ {$document->getLabel()} a été signé par {$signerName}")
+                    ->html($htmlContent);
+
+                $this->mailer->send($email);
+            }
+        } catch (\Throwable) {
+            // Ne pas bloquer si l'email échoue
+        }
     }
 
     private function sendNewDocumentEmail(Client $client, Chantier $chantier, Document $document): void

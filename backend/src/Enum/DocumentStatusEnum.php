@@ -11,6 +11,7 @@ enum DocumentStatusEnum: string
     case REFUSE = 'refuse';
     case PAYE = 'paye';
     case EN_RETARD = 'en_retard';
+    case Signe = 'signe';
 
     public function label(): string
     {
@@ -20,6 +21,7 @@ enum DocumentStatusEnum: string
             self::REFUSE => 'Refusé',
             self::PAYE => 'Payé',
             self::EN_RETARD => 'En retard',
+            self::Signe => 'Signé',
         };
     }
 }

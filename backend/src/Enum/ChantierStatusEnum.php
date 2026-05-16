@@ -10,6 +10,7 @@ enum ChantierStatusEnum: string
     case EN_COURS = 'en_cours';
     case TERMINE = 'termine';
     case ANNULE = 'annule';
+    case Archive = 'archive';
 
     public function label(): string
     {
@@ -18,6 +19,7 @@ enum ChantierStatusEnum: string
             self::EN_COURS => 'En cours',
             self::TERMINE => 'Terminé',
             self::ANNULE => 'Annulé',
+            self::Archive => 'Archivé',
         };
     }
 }

@@ -39,6 +39,18 @@ class ChantierRepository extends ServiceEntityRepository
         return $this->findBy(['client' => $client], ['createdAt' => 'DESC']);
     }
 
+    public function countActivByTenant(Tenant $tenant): int
+    {
+        return (int) $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->where('c.tenant = :tenant')
+            ->andWhere('c.status != :archived')
+            ->setParameter('tenant', $tenant)
+            ->setParameter('archived', ChantierStatusEnum::Archive)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
     public function save(Chantier $chantier, bool $flush = false): void
     {
         $this->getEntityManager()->persist($chantier);
