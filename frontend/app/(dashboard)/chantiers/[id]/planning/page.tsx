@@ -132,6 +132,14 @@ export default function PlanningPage({ params }: PlanningPageProps) {
             <Share2 className="mr-2 h-4 w-4" />
             Envoyer au client
           </Button>
+          <a
+            href={`${process.env.NEXT_PUBLIC_API_URL}/api/chantiers/${id}/jalons.ics`}
+            download={`chantier-${id}.ics`}
+            className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline"
+          >
+            <CalendarDays className="h-4 w-4" />
+            Exporter Google Calendar
+          </a>
         </div>
       </div>
 

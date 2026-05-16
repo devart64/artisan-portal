@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { MapPin, Calendar, User, FileText, Camera, CalendarDays, MessageSquare } from 'lucide-react'
 import { ChantierStatusBadge } from '@/components/chantier/ChantierStatusBadge'
+import { DevisIaButton } from './DevisIaButton'
 import { apiFetch } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 import type { Chantier } from '@/lib/types'
@@ -46,6 +47,9 @@ export default async function ChantierDetailPage({ params }: ChantierDetailPageP
             {chantier.description && (
               <p className="mt-2 text-gray-600">{chantier.description}</p>
             )}
+          </div>
+          <div className="flex items-center gap-2">
+            <DevisIaButton chantierId={chantier.id} />
           </div>
         </div>
 

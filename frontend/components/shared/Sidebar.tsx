@@ -10,6 +10,7 @@ import {
   Wrench,
   UsersRound,
   UserCircle,
+  Key,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { logout } from '@/lib/auth'
@@ -24,6 +25,7 @@ const navItems = [
 const settingsItems = [
   { href: '/settings/team', label: 'Équipe', icon: UsersRound },
   { href: '/settings/account', label: 'Mon compte', icon: UserCircle },
+  { href: '/settings/api-keys', label: 'Clés API', icon: Key },
 ]
 
 export function Sidebar() {
