@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { HardHat, MessageSquare, FileText, ArrowRight, Plus } from 'lucide-react'
+import { HardHat, MessageSquare, FileText, ArrowRight, Plus, Briefcase, Users, FileCheck, TrendingUp } from 'lucide-react'
 import {
   Card,
   CardContent,
@@ -13,16 +13,26 @@ import { apiFetch } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 import type { Chantier, Document, Message } from '@/lib/types'
 
+interface Stats {
+  chantiers: number
+  chantiersByStatus: Record<string, number>
+  clients: number
+  documents: number
+  documentsSigned: number
+  leads: number
+}
+
 async function getDashboardData() {
   try {
-    const [chantiers, messages, documents] = await Promise.all([
+    const [chantiers, messages, documents, stats] = await Promise.all([
       apiFetch<Chantier[]>('/api/chantiers?status=en_cours'),
       apiFetch<Message[]>('/api/messages?unread=true'),
       apiFetch<Document[]>('/api/documents?recent=true'),
+      apiFetch<Stats>('/api/stats'),
     ])
-    return { chantiers, messages, documents, error: null }
+    return { chantiers, messages, documents, stats, error: null }
   } catch {
-    return { chantiers: [], messages: [], documents: [], error: 'Erreur de chargement' }
+    return { chantiers: [], messages: [], documents: [], stats: null, error: 'Erreur de chargement' }
   }
 }
 

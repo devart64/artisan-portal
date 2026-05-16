@@ -36,6 +36,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(type: 'string', enumType: UserRoleEnum::class)]
     private UserRoleEnum $role = UserRoleEnum::ADMIN;
 
+    #[ORM\Column(type: 'string', length: 255)]
+    private string $name = '';
+
+    #[ORM\Column(type: 'string', length: 64, nullable: true, unique: true)]
+    private ?string $invitationToken = null;
+
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $invitedAt = null;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
@@ -106,9 +115,45 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->createdAt;
     }
 
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): static
+    {
+        $this->name = $name;
+        return $this;
+    }
+
+    public function getInvitationToken(): ?string
+    {
+        return $this->invitationToken;
+    }
+
+    public function setInvitationToken(?string $invitationToken): static
+    {
+        $this->invitationToken = $invitationToken;
+        return $this;
+    }
+
+    public function getInvitedAt(): ?\DateTimeImmutable
+    {
+        return $this->invitedAt;
+    }
+
+    public function setInvitedAt(?\DateTimeImmutable $invitedAt): static
+    {
+        $this->invitedAt = $invitedAt;
+        return $this;
+    }
+
     public function getRoles(): array
     {
-        return ['ROLE_USER'];
+        return match ($this->role) {
+            UserRoleEnum::ADMIN        => ['ROLE_USER', 'ROLE_ADMIN'],
+            UserRoleEnum::COLLABORATOR => ['ROLE_USER'],
+        };
     }
 
     public function getUserIdentifier(): string

@@ -43,6 +43,9 @@ class Tenant
     #[ORM\Column(type: 'string', enumType: PlanStatusEnum::class)]
     private PlanStatusEnum $planStatus = PlanStatusEnum::TRIALING;
 
+    #[ORM\Column(type: 'datetime_immutable', nullable: true)]
+    private ?\DateTimeImmutable $trialEndsAt = null;
+
     #[ORM\Column(type: 'datetime_immutable')]
     private \DateTimeImmutable $createdAt;
 
@@ -144,5 +147,16 @@ class Tenant
     public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
+    }
+
+    public function getTrialEndsAt(): ?\DateTimeImmutable
+    {
+        return $this->trialEndsAt;
+    }
+
+    public function setTrialEndsAt(?\DateTimeImmutable $trialEndsAt): static
+    {
+        $this->trialEndsAt = $trialEndsAt;
+        return $this;
     }
 }

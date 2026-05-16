@@ -30,6 +30,7 @@ class BillingController extends AbstractController
         $data = [
             'plan'                => $tenant->getPlan()->value,
             'planStatus'          => $tenant->getPlanStatus()->value,
+            'trialEndsAt'         => $tenant->getTrialEndsAt()?->format('c'),
             'stripeCustomerId'    => $tenant->getStripeCustomerId(),
             'stripePortalUrl'     => null,
             'nextBillingDate'     => null,

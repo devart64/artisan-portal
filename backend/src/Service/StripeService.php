@@ -23,6 +23,9 @@ class StripeService
         private readonly TenantRepository $tenantRepository,
         private readonly string $stripeSecretKey,
         private readonly string $stripeWebhookSecret,
+        private readonly string $stripePriceStarter,
+        private readonly string $stripePricePro,
+        private readonly string $stripePriceBusiness,
     ) {
         $this->stripe = new StripeClient($this->stripeSecretKey);
     }
@@ -134,6 +137,13 @@ class StripeService
         $status = $this->mapStripeStatusToPlanStatus($subscription->status);
         $tenant->setPlanStatus($status);
 
+        // Map price → plan
+        $priceId = $subscription->items->data[0]->price->id ?? '';
+        $plan = $this->mapPriceToPlan($priceId);
+        if ($plan !== null) {
+            $tenant->setPlan($plan);
+        }
+
         $this->entityManager->flush();
     }
 
@@ -175,7 +185,24 @@ class StripeService
         }
 
         $tenant->setPlanStatus(PlanStatusEnum::ACTIVE);
+
+        $priceId = $invoice->lines->data[0]->price->id ?? '';
+        $plan    = $this->mapPriceToPlan($priceId);
+        if ($plan !== null) {
+            $tenant->setPlan($plan);
+        }
+
         $this->entityManager->flush();
+    }
+
+    private function mapPriceToPlan(string $priceId): ?PlanEnum
+    {
+        return match ($priceId) {
+            $this->stripePriceStarter  => PlanEnum::STARTER,
+            $this->stripePricePro      => PlanEnum::PRO,
+            $this->stripePriceBusiness => PlanEnum::BUSINESS,
+            default                    => null,
+        };
     }
 
     private function mapStripeStatusToPlanStatus(string $stripeStatus): PlanStatusEnum

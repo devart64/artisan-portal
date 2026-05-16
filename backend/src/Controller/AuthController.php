@@ -95,8 +95,12 @@ class AuthController extends AbstractController
         $user = new User();
         $user->setTenant($tenant);
         $user->setEmail($data['email']);
+        $user->setName($data['name'] ?? '');
         $user->setPassword($this->passwordHasher->hashPassword($user, $data['password']));
         $this->entityManager->persist($user);
+
+        // Set trial period on tenant
+        $tenant->setTrialEndsAt(new \DateTimeImmutable('+14 days'));
 
         $this->entityManager->flush();
 
@@ -210,6 +214,30 @@ class AuthController extends AbstractController
         $cache->deleteItem($cacheKey);
 
         return $this->json(['message' => 'Mot de passe mis à jour avec succès.']);
+    }
+
+    #[Route('/invitation/accept/{token}', name: 'invitation_accept', methods: ['POST'])]
+    public function acceptInvitation(string $token, Request $request, UserRepository $userRepository): JsonResponse
+    {
+        $user = $userRepository->findOneBy(['invitationToken' => $token]);
+        if ($user === null) {
+            return $this->json(['error' => 'Lien invalide ou expiré.'], Response::HTTP_NOT_FOUND);
+        }
+
+        $data     = json_decode($request->getContent(), true);
+        $password = $data['password'] ?? '';
+
+        if (strlen($password) < 8) {
+            return $this->json(['error' => 'Le mot de passe doit contenir au moins 8 caractères.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $user->setPassword($this->passwordHasher->hashPassword($user, $password));
+        $user->setInvitationToken(null);
+        $user->setInvitedAt(null);
+        $this->entityManager->flush();
+
+        $jwt = $this->jwtTokenManager->create($user);
+        return $this->json(['token' => $jwt]);
     }
 
     private function generateSlug(string $name): string
