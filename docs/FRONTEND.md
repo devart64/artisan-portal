@@ -31,28 +31,39 @@ frontend/
 │   ├── error.tsx                 # Page d'erreur globale (client)
 │   ├── not-found.tsx             # Page 404 personnalisée
 │   ├── sitemap.ts                # Sitemap dynamique (/sitemap.xml)
+│   ├── manifest.json             # PWA manifest
+│   ├── sw.js                     # Service Worker (cache-first + push handler)
 │   ├── (auth)/                   # Groupe de routes auth (layout centré)
 │   │   ├── layout.tsx            # Layout : logo + formulaire centré
 │   │   ├── login/page.tsx        # Page de connexion artisan
-│   │   └── register/page.tsx     # Page d'inscription artisan
+│   │   ├── register/page.tsx     # Page d'inscription artisan
+│   │   ├── forgot-password/page.tsx
+│   │   ├── reset-password/page.tsx
+│   │   └── invitation/[token]/page.tsx  # Acceptation invitation collaborateur
 │   ├── (dashboard)/              # Groupe routes dashboard (sidebar)
 │   │   ├── layout.tsx            # Layout : Sidebar + Header
 │   │   ├── error.tsx             # Page d'erreur dashboard (client)
-│   │   ├── dashboard/page.tsx    # Tableau de bord (stats, messages, docs)
+│   │   ├── dashboard/page.tsx    # Tableau de bord (stats + onboarding)
 │   │   ├── chantiers/
-│   │   │   ├── page.tsx          # Liste des chantiers avec filtre
-│   │   │   ├── new/page.tsx      # Formulaire création chantier
+│   │   │   ├── page.tsx          # Liste avec PlanLimitBanner
+│   │   │   ├── new/page.tsx      # Bloqué si limite atteinte
 │   │   │   └── [id]/
-│   │   │       ├── page.tsx      # Détail chantier (tabs)
+│   │   │       ├── page.tsx      # Détail + bouton "Générer devis IA"
 │   │   │       ├── actions.ts    # Server Actions (updateStatus, sendPortal, toggleJalon)
-│   │   │       ├── documents/page.tsx
+│   │   │       ├── documents/page.tsx   # Avec PDF + bouton signer
 │   │   │       ├── photos/page.tsx
-│   │   │       ├── planning/page.tsx
+│   │   │       ├── planning/page.tsx   # Avec export ICS Google Calendar
 │   │   │       └── messages/page.tsx
 │   │   ├── clients/page.tsx      # CRUD clients (dialog)
-│   │   ├── settings/
-│   │   │   ├── page.tsx          # Paramètres branding (logo, couleur, nom)
-│   │   │   └── billing/page.tsx  # Plan actif + lien portail Stripe
+│   │   └── settings/
+│   │       ├── page.tsx          # Paramètres branding (logo, couleur, nom)
+│   │       ├── billing/page.tsx  # Stripe checkout + banner trial
+│   │       ├── team/page.tsx     # Gestion collaborateurs
+│   │       ├── security/page.tsx # 2FA TOTP setup
+│   │       ├── audit/page.tsx    # Journal d'activité
+│   │       ├── export/page.tsx   # Export CSV comptabilité
+│   │       ├── account/page.tsx  # RGPD export/delete + push notifications
+│   │       └── api-keys/page.tsx # Clés API (plan Business)
 │   ├── (legal)/                  # Groupe routes légales (layout simple)
 │   │   ├── layout.tsx
 │   │   ├── cgv/page.tsx
@@ -78,7 +89,8 @@ frontend/
 │   ├── types.ts                  # Interfaces TypeScript
 │   └── utils.ts                  # Utilitaires (cn, formatDate...)
 ├── public/
-│   └── robots.txt                # SEO : routes publiques/privées
+│   ├── robots.txt                # SEO : routes publiques/privées
+│   └── icons/                    # Icônes PWA (192x192, 512x512)
 ├── middleware.ts                  # Protection des routes privées
 ├── next.config.ts                 # Config Next.js (standalone, S3 images)
 └── package.json
@@ -106,32 +118,46 @@ frontend/
 - **Validation** : Zod (`name`, `email`, `password` min 8 chars)
 - **Action** : Appelle `register()` Server Action → POST `/api/auth/register` → redirect `/dashboard`
 
+### `/forgot-password` et `/reset-password`
+- Formulaires de réinitialisation de mot de passe
+- `forgot-password` : envoie l'email de réinitialisation
+- `reset-password` : consomme le token reçu par email
+
+### `/invitation/[token]` — Invitation collaborateur
+- **Fichier** : `app/(auth)/invitation/[token]/page.tsx`
+- **Type** : Client Component
+- Accepte l'invitation via `POST /api/auth/invitation/accept/{token}`
+- Redirige vers `/dashboard` après activation du compte
+
 ### `/dashboard` — Tableau de bord
 - **Fichier** : `app/(dashboard)/dashboard/page.tsx`
 - **Type** : Server Component
-- **Données** : GET `/api/chantiers`, GET `/api/messages?unread=true`
-- **Contenu** : Cards stats (chantiers actifs, messages non lus, docs récents), liste des derniers chantiers
+- **Données** : GET `/api/chantiers`, GET `/api/messages?unread=true`, GET `/api/onboarding/checklist`
+- **Contenu** : Cards stats, `OnboardingChecklist`, `OnboardingModal` (premier login), liste des derniers chantiers
 
 ### `/chantiers` — Liste des chantiers
 - **Fichier** : `app/(dashboard)/chantiers/page.tsx`
 - **Type** : Server Component
 - **Données** : GET `/api/chantiers`
-- **Contenu** : Grille de ChantierCards avec filtre par statut (tabs)
+- **Contenu** : Grille de ChantierCards avec filtre par statut (tabs) + `PlanLimitBanner` si quota atteint
 
 ### `/chantiers/new` — Nouveau chantier
 - **Fichier** : `app/(dashboard)/chantiers/new/page.tsx`
 - **Type** : Client Component
+- **Comportement** : bloqué avec message d'erreur si la limite plan est atteinte
 - **Action** : POST `/api/chantiers` via ChantierForm
 
 ### `/chantiers/[id]` — Détail chantier
 - **Fichier** : `app/(dashboard)/chantiers/[id]/page.tsx`
 - **Type** : Server Component
 - **Données** : GET `/api/chantiers/{id}`
-- **Contenu** : Infos chantier + tabs (Documents, Photos, Planning, Messages) + Server Actions
+- **Contenu** : Infos chantier + tabs (Documents, Photos, Planning, Messages) + Server Actions + bouton `DevisIaButton` (plan Business)
 
 ### `/chantiers/[id]/documents` — Documents
 - Upload via DocumentUploader (drag & drop)
 - Liste des documents avec statut et bouton téléchargement (URL pré-signée S3)
+- Bouton "Générer PDF" (dompdf)
+- `SignatureModal` pour la signature canvas HTML5 côté portail client
 
 ### `/chantiers/[id]/photos` — Photos
 - Upload via DropZone
@@ -140,6 +166,7 @@ frontend/
 ### `/chantiers/[id]/planning` — Jalons
 - Timeline des jalons avec cases à cocher
 - Ajout/suppression de jalons
+- Bouton "Exporter vers Google Calendar" → téléchargement du fichier `.ics`
 
 ### `/chantiers/[id]/messages` — Messages
 - Chat artisan ↔ client
@@ -154,13 +181,40 @@ frontend/
 - Logo upload, couleur de marque, nom affiché dans le portail client
 
 ### `/settings/billing` — Facturation
-- Affiche le plan actif, bouton "Gérer mon abonnement" → URL portail Stripe
+- Affiche le plan actif et le statut de l'abonnement
+- Banner "Période d'essai" si statut `trialing`
+- Bouton "Changer de plan" → session Stripe Checkout
+- Bouton "Gérer mon abonnement" → URL portail Stripe
+
+### `/settings/team` — Collaborateurs
+- Liste des collaborateurs du tenant
+- Formulaire d'invitation par email (token 7 jours)
+- Bouton de suppression d'un collaborateur
+
+### `/settings/security` — Sécurité
+- Setup 2FA TOTP avec QR code à scanner (Google Authenticator)
+- Activation/désactivation de la 2FA
+
+### `/settings/audit` — Journal d'activité
+- Liste paginée des actions enregistrées dans `audit_logs`
+- Filtre par type d'action
+
+### `/settings/export` — Export comptabilité
+- Boutons pour télécharger les CSV chantiers et documents
+
+### `/settings/account` — Compte
+- **RGPD** : bouton "Exporter mes données" (JSON) + bouton "Supprimer mon compte"
+- **Push notifications** : composant `PushNotifSetup` (subscribe/unsubscribe)
+
+### `/settings/api-keys` — Clés API
+- Visible uniquement pour les tenants plan Business
+- Génère et révoque des clés API pour intégrations tierces
 
 ### `/portal/[token]` — Portail client
 - **Auth** : Token dans l'URL (magic link)
 - **Layout** : Couleur de marque du tenant, navigation par tabs
 - **Pages** : Vue principale, Documents, Photos, Planning, Messages
-- **Restrictions** : Lecture seule (sauf messages)
+- **Restrictions** : Lecture seule (sauf messages et signature de documents)
 
 ### `/mentions-legales`, `/cgv`, `/politique-confidentialite`
 - Pages légales statiques en français
@@ -198,14 +252,38 @@ frontend/
 
 **Sidebar** (`Sidebar.tsx`)
 - Navigation principale du dashboard
-- Liens : Dashboard, Chantiers, Clients, Paramètres
+- Liens : Dashboard, Chantiers, Clients, Paramètres (Branding, Facturation, Équipe, Sécurité, Audit, Export, Compte, Clés API)
 - Logo ArtisanPortal en haut
 - Bouton déconnexion en bas
 
 **Header** (`Header.tsx`)
 - Barre du haut du dashboard
 - Titre de la page courante
+- `NotificationBell` à droite
 - Avatar utilisateur + menu dropdown (profil, déconnexion)
+
+**NotificationBell** (`NotificationBell.tsx`)
+- Icône cloche dans le Header
+- Polling toutes les 30 secondes sur `GET /api/notifications`
+- Badge rouge avec le nombre de notifications non lues
+- Popover au clic : liste des notifications avec lien vers la ressource concernée
+- Bouton "Tout marquer comme lu" → `POST /api/notifications/read-all`
+
+**OnboardingModal** (`OnboardingModal.tsx`)
+- Dialog affiché automatiquement au premier login de l'artisan
+- Guide en étapes : créer un premier chantier, inviter un client, personnaliser le branding
+- Se ferme et ne réapparaît plus une fois complété
+
+**OnboardingChecklist** (`OnboardingChecklist.tsx`)
+- Widget affiché dans le dashboard
+- Liste des étapes d'onboarding avec état (complété/non complété)
+- Données issues de `GET /api/onboarding/checklist`
+- Disparaît automatiquement une fois toutes les étapes complétées
+
+**PlanLimitBanner** (`PlanLimitBanner.tsx`)
+- Bandeau d'avertissement affiché sur la liste des chantiers
+- Orange si proche du quota (ex: 4/5 chantiers), rouge si quota atteint
+- Lien vers `/settings/billing` pour upgrader
 
 **DropZone** (`DropZone.tsx`)
 - Upload fichiers par drag & drop
@@ -236,6 +314,18 @@ frontend/
 - Drag & drop + sélection fichier
 - Affiche la progression
 
+**SignatureModal** (`SignatureModal.tsx`)
+- Modal avec canvas HTML5 pour la signature manuscrite
+- Boutons : effacer, valider
+- Envoie la signature encodée en base64 via `POST /api/portal/{token}/documents/{id}/sign`
+- Disponible dans le portail client
+
+**DevisIaButton** (`DevisIaButton.tsx`)
+- Bouton affiché sur la page détail chantier (plan Business uniquement)
+- Ouvre une modal de génération de devis IA
+- Appelle `GET /api/ai/chantiers/{id}/devis`
+- Affiche le brouillon Markdown généré par Claude
+
 ### `components/portal/`
 
 **PortalHeader** (`PortalHeader.tsx`)
@@ -247,6 +337,7 @@ frontend/
 - Liste des documents du chantier
 - Bouton téléchargement (URL pré-signée S3)
 - Badge statut (en_attente, signé, refusé)
+- Bouton "Signer" → ouvre `SignatureModal`
 
 **PortalPhotos** (`PortalPhotos.tsx`)
 - Galerie photos du chantier
@@ -261,6 +352,47 @@ frontend/
 - Chat entre client et artisan
 - Formulaire envoi message (côté client uniquement)
 - Distinction visuelle artisan/client
+
+### `components/settings/`
+
+**PushNotifSetup** (`PushNotifSetup.tsx`)
+- Affiché dans `/settings/account`
+- Vérifie si le navigateur supporte les notifications push
+- Bouton "Activer les notifications" → demande la permission + appelle `POST /api/push/subscribe`
+- Bouton "Désactiver" → appelle `POST /api/push/unsubscribe`
+- Récupère la clé publique VAPID via `GET /api/push/vapid-public-key`
+
+---
+
+## PWA — Application Web Progressive
+
+### manifest.json
+
+Fichier : `app/manifest.json`
+
+```json
+{
+  "name": "Artisan Portal",
+  "short_name": "ArtisanPortal",
+  "theme_color": "#1A56A0",
+  "background_color": "#ffffff",
+  "display": "standalone",
+  "start_url": "/dashboard",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
+```
+
+### Service Worker (`sw.js`)
+
+Stratégie **cache-first** pour les assets statiques.
+
+Gestion des **notifications push** (handler `push`) :
+- Reçoit les payloads de notifications
+- Affiche une notification système avec titre, corps et icône
+- Gère le clic sur la notification (ouverture de la page concernée)
 
 ---
 
@@ -337,6 +469,10 @@ interface Document { id, type, label, filePath, status, uploadedAt }
 interface Photo { id, filePath, caption, uploadedAt }
 interface Message { id, senderType, senderName, content, isRead, createdAt }
 interface Jalon { id, title, date, done }
+interface Notification { id, type, title, body, isRead, relatedId, createdAt }
+interface AuditLog { id, action, resourceType, resourceId, context, ipAddress, createdAt }
+interface ApiKey { id, name, prefix, lastUsedAt, createdAt }
+interface OnboardingChecklist { steps: { key: string, label: string, done: boolean }[] }
 interface PortalData { tenant: Tenant, chantier: Chantier, client: Client }
 
 // Enums TypeScript
@@ -344,6 +480,7 @@ type ChantierStatus = 'en_attente' | 'en_cours' | 'termine' | 'archive'
 type DocumentType = 'devis' | 'facture' | 'plan' | 'contrat' | 'autre'
 type DocumentStatus = 'en_attente' | 'signe' | 'refuse'
 type Plan = 'starter' | 'pro' | 'business'
+type PlanStatus = 'trialing' | 'active' | 'past_due' | 'canceled'
 ```
 
 ---
@@ -376,6 +513,9 @@ Routes publiques (pas de vérification) :
 /           (landing)
 /login
 /register
+/forgot-password
+/reset-password
+/invitation/*
 /portal/*   (accès par token)
 /api/*      (géré par le backend)
 /cgv, /mentions-legales, /politique-confidentialite
@@ -434,6 +574,22 @@ export async function updateStatus(id: string, status: string) {
 - **`not-found.tsx`** : affiché automatiquement si `notFound()` est appelé
 - **`ErrorBoundary`** : pour les sous-arbres de composants spécifiques
 - **`APIError`** : erreur HTTP du backend (status + data)
+
+---
+
+## Notifications
+
+### Notifications in-app
+
+Le composant `NotificationBell` fait un polling de `GET /api/notifications` toutes les 30 secondes. Les nouvelles notifications sont affichées avec un badge rouge sur l'icône cloche.
+
+### Notifications push (Web Push / VAPID)
+
+1. L'utilisateur active les push dans `/settings/account` via `PushNotifSetup`
+2. Le frontend récupère la clé VAPID publique et demande la permission navigateur
+3. L'abonnement push est envoyé au backend (`POST /api/push/subscribe`)
+4. Le backend utilise `PushService` pour envoyer des notifications via `minishlink/web-push`
+5. Le Service Worker (`sw.js`) reçoit les événements push et affiche la notification système
 
 ---
 
