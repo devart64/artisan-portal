@@ -11,6 +11,9 @@ import {
   UsersRound,
   UserCircle,
   Key,
+  ShieldCheck,
+  ClipboardList,
+  Download,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { logout } from '@/lib/auth'
@@ -26,6 +29,9 @@ const settingsItems = [
   { href: '/settings/team', label: 'Équipe', icon: UsersRound },
   { href: '/settings/account', label: 'Mon compte', icon: UserCircle },
   { href: '/settings/api-keys', label: 'Clés API', icon: Key },
+  { href: '/settings/security', label: 'Sécurité (2FA)', icon: ShieldCheck },
+  { href: '/settings/audit', label: 'Journal d\'activité', icon: ClipboardList },
+  { href: '/settings/export', label: 'Export compta', icon: Download },
 ]
 
 export function Sidebar() {
