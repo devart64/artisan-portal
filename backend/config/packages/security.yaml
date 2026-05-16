@@ -33,4 +33,5 @@ security:
         - { path: ^/api/auth/, roles: PUBLIC_ACCESS }
         - { path: ^/api/portal/, roles: PUBLIC_ACCESS }
         - { path: ^/api/stripe/webhook$, roles: PUBLIC_ACCESS, methods: [POST] }
+        - { path: ^/api/webhooks/, roles: PUBLIC_ACCESS }
         - { path: ^/api/, roles: ROLE_USER }

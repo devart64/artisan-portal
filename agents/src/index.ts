@@ -37,6 +37,12 @@ switch (command) {
     break
   }
 
+  case 'scheduler': {
+    await import('./scheduler.js')
+    // Le scheduler tourne indéfiniment via cron
+    break
+  }
+
   default:
     console.log(`
 Artisan Portal — Équipe Agents IA Marketing
@@ -46,10 +52,12 @@ Commandes disponibles :
   pnpm qualify                           Qualifier les leads "new"
   pnpm campaign [métier] [ville] [nb]    Pipeline complet
   pnpm report                            Rapport du pipeline
+  pnpm scheduler                         Démarrer le scheduler automatique (24/7)
 
 Exemples :
   pnpm prospect plombier Paris 10
   pnpm campaign électricien Lyon 5
   pnpm report
+  pnpm scheduler
 `)
 }
