@@ -44,6 +44,14 @@ services:
             $twilioAuthToken: '%env(TWILIO_AUTH_TOKEN)%'
             $twilioPhoneNumber: '%env(TWILIO_PHONE_NUMBER)%'
 
+    App\Service\AiService:
+        arguments:
+            $anthropicApiKey: '%env(ANTHROPIC_API_KEY)%'
+
+    App\Command\SendDocumentRemindersCommand:
+        arguments:
+            $frontendUrl: '%env(FRONTEND_URL)%'
+
     App\Service\StripeService:
         arguments:
             $stripeSecretKey: '%env(STRIPE_SECRET_KEY)%'

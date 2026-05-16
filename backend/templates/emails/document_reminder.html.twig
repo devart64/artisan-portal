@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Document en attente de signature</title></head>
+<body style="font-family:Arial,sans-serif;background:#f9f9f9;margin:0;padding:20px">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:8px;padding:32px;box-shadow:0 2px 8px rgba(0,0,0,.08)">
+    <h2 style="color:#1A56A0;margin-bottom:8px">Document en attente de votre signature</h2>
+    <p>Bonjour {{ client_name }},</p>
+    <p><strong>{{ artisan_name }}</strong> attend votre signature sur le document <strong>{{ document_label }}</strong> concernant le chantier <strong>{{ chantier_title }}</strong>.</p>
+    <div style="text-align:center;margin:32px 0">
+      <a href="{{ portal_url }}" style="background:#1A56A0;color:#fff;padding:14px 28px;border-radius:6px;text-decoration:none;font-weight:bold;font-size:16px">
+        Accéder au portail et signer
+      </a>
+    </div>
+    <p style="color:#666;font-size:13px">Ce document nécessite votre signature pour avancer sur le chantier.</p>
+    <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
+    <p style="color:#999;font-size:12px;text-align:center">Artisan Portal · artisan-portal.fr</p>
+  </div>
+</body>
+</html>

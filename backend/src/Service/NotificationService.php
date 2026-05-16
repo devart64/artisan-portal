@@ -7,6 +7,8 @@ namespace App\Service;
 use App\Entity\Chantier;
 use App\Entity\Client;
 use App\Entity\Document;
+use App\Entity\Notification;
+use App\Entity\Tenant;
 use App\Entity\User;
 use App\Repository\ClientTokenRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -184,6 +186,31 @@ class NotificationService
         } catch (\Throwable) {
             // Ne pas bloquer si l'email échoue
         }
+
+        $this->create(
+            $chantier->getTenant(),
+            'document_signed',
+            'Document signé : ' . $document->getLabel(),
+            $document->getSignerName() . ' a signé le document.',
+            '/chantiers/' . $document->getChantier()->getId()->toString() . '/documents',
+        );
+    }
+
+    public function create(
+        Tenant  $tenant,
+        string  $type,
+        string  $title,
+        ?string $body = null,
+        ?string $url  = null,
+    ): void {
+        $notification = new Notification();
+        $notification->setTenant($tenant);
+        $notification->setType($type);
+        $notification->setTitle($title);
+        $notification->setBody($body);
+        $notification->setUrl($url);
+        $this->em->persist($notification);
+        $this->em->flush();
     }
 
     private function sendNewDocumentEmail(Client $client, Chantier $chantier, Document $document): void

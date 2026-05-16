@@ -39,4 +39,18 @@ class DocumentRepository extends ServiceEntityRepository
             $this->getEntityManager()->flush();
         }
     }
+
+    /** @return Document[] */
+    public function findUnsignedOlderThan(\DateTimeImmutable $threshold): array
+    {
+        return $this->createQueryBuilder('d')
+            ->join('d.chantier', 'ch')
+            ->join('ch.client', 'c')
+            ->where('d.signedAt IS NULL')
+            ->andWhere('d.createdAt < :threshold')
+            ->andWhere('c.email IS NOT NULL')
+            ->setParameter('threshold', $threshold)
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -8,11 +8,24 @@ security:
             entity:
                 class: App\Entity\User
                 property: email
+        admin_provider:
+            memory:
+                users:
+                    '%env(ADMIN_USERNAME)%':
+                        password: '%env(ADMIN_PASSWORD_HASH)%'
+                        roles: ['ROLE_SUPER_ADMIN']
 
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
+
+        admin:
+            pattern: ^/admin/
+            stateless: false
+            provider: admin_provider
+            http_basic:
+                realm: 'Artisan Portal Admin'
 
         portal:
             pattern: ^/api/portal/
@@ -30,6 +43,7 @@ security:
             provider: app_user_provider
 
     access_control:
+        - { path: ^/admin/, roles: ROLE_SUPER_ADMIN }
         - { path: ^/api/auth/, roles: PUBLIC_ACCESS }
         - { path: ^/api/portal/, roles: PUBLIC_ACCESS }
         - { path: ^/api/stripe/webhook$, roles: PUBLIC_ACCESS, methods: [POST] }
