@@ -59,6 +59,39 @@ class StripeService
     }
 
     /**
+     * Create a Stripe Checkout Session for subscribing to a plan.
+     * Creates a Stripe customer for the tenant first if one does not exist yet.
+     *
+     * @return string The Checkout Session URL to redirect the user to
+     */
+    public function createCheckoutSession(
+        Tenant $tenant,
+        string $priceId,
+        string $successUrl,
+        string $cancelUrl,
+    ): string {
+        // Crée ou réutilise le customer Stripe
+        if (!$tenant->getStripeCustomerId()) {
+            $customerId = $this->createCustomer($tenant);
+            $tenant->setStripeCustomerId($customerId);
+            $this->entityManager->flush();
+        }
+
+        $params = [
+            'mode'                  => 'subscription',
+            'line_items'            => [['price' => $priceId, 'quantity' => 1]],
+            'success_url'           => $successUrl,
+            'cancel_url'            => $cancelUrl,
+            'customer'              => $tenant->getStripeCustomerId(),
+            'allow_promotion_codes' => true,
+        ];
+
+        $session = $this->stripe->checkout->sessions->create($params);
+
+        return $session->url;
+    }
+
+    /**
      * Generate a Stripe Customer Portal URL for self-service billing management.
      */
     public function getPortalUrl(string $customerId): string

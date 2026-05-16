@@ -12,6 +12,7 @@ import {
 import { Badge } from '@/components/ui/badge'
 import { apiFetch } from '@/lib/api'
 import type { Tenant, Plan, PlanStatus } from '@/lib/types'
+import PlanButton from './PlanButton'
 
 const planDetails: Record<Plan, { name: string; price: string; features: string[] }> = {
   starter: {
@@ -66,7 +67,12 @@ async function getBillingData() {
   }
 }
 
-export default async function BillingPage() {
+export default async function BillingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ success?: string; canceled?: string }>
+}) {
+  const params = await searchParams
   const { tenant, error } = await getBillingData()
 
   if (error || !tenant) {
@@ -95,6 +101,17 @@ export default async function BillingPage() {
 
   return (
     <div className="max-w-2xl space-y-6">
+      {params.success === '1' && (
+        <div className="rounded-lg bg-green-50 border border-green-200 p-4 text-sm text-green-800">
+          ✅ Votre abonnement a bien été mis à jour. Merci !
+        </div>
+      )}
+      {params.canceled === '1' && (
+        <div className="rounded-lg bg-yellow-50 border border-yellow-200 p-4 text-sm text-yellow-800">
+          Le paiement a été annulé. Votre abonnement reste inchangé.
+        </div>
+      )}
+
       <div className="flex items-center gap-4">
         <Link href="/settings">
           <Button variant="ghost" size="sm">
@@ -201,11 +218,7 @@ export default async function BillingPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {key !== tenant.plan && (
-                    <Button variant="outline" size="sm" className="w-full" disabled>
-                      Changer
-                    </Button>
-                  )}
+                  <PlanButton plan={key} currentPlan={tenant.plan} />
                 </CardContent>
               </Card>
             ),

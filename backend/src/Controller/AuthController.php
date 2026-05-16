@@ -6,6 +6,7 @@ namespace App\Controller;
 
 use App\Entity\Tenant;
 use App\Entity\User;
+use App\Repository\UserRepository;
 use App\Service\StripeService;
 use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
@@ -20,6 +21,7 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Contracts\Cache\CacheInterface;
 use Twig\Environment;
 
 #[Route('/api/auth')]
@@ -131,6 +133,83 @@ class AuthController extends AbstractController
         // This route is intercepted by LexikJWT before hitting the controller.
         // This method will only be reached if JWT auth is misconfigured.
         return $this->json(['error' => 'Invalid credentials.'], Response::HTTP_UNAUTHORIZED);
+    }
+
+    #[Route('/forgot-password', name: 'auth_forgot_password', methods: ['POST'])]
+    public function forgotPassword(
+        Request $request,
+        UserRepository $userRepository,
+        CacheInterface $cache,
+    ): JsonResponse {
+        $data  = json_decode($request->getContent(), true);
+        $email = trim($data['email'] ?? '');
+
+        // Toujours répondre 200 (sécurité : ne pas révéler si l'email existe)
+        if (!$email) {
+            return $this->json(['message' => 'Si cet email existe, un lien a été envoyé.']);
+        }
+
+        $user = $userRepository->findOneBy(['email' => $email]);
+
+        if ($user) {
+            $token    = bin2hex(random_bytes(32));
+            $cacheKey = 'reset_token_' . $token;
+
+            $item = $cache->getItem($cacheKey);
+            $item->set($user->getId()->toString());
+            $item->expiresAfter(3600); // 1 heure
+            $cache->save($item);
+
+            $frontendUrl = $_ENV['FRONTEND_URL'] ?? 'http://localhost:3000';
+            $resetUrl    = "{$frontendUrl}/reset-password?token={$token}";
+
+            $emailMessage = (new Email())
+                ->from(new Address('noreply@artisan-portal.fr', 'Artisan Portal'))
+                ->to(new Address($user->getEmail()))
+                ->subject('Réinitialisation de votre mot de passe — Artisan Portal')
+                ->html($this->renderView('emails/reset_password.html.twig', [
+                    'reset_url' => $resetUrl,
+                ]));
+
+            $this->mailer->send($emailMessage);
+        }
+
+        return $this->json(['message' => 'Si cet email existe, un lien a été envoyé.']);
+    }
+
+    #[Route('/reset-password', name: 'auth_reset_password', methods: ['POST'])]
+    public function resetPassword(
+        Request $request,
+        UserRepository $userRepository,
+        CacheInterface $cache,
+    ): JsonResponse {
+        $data     = json_decode($request->getContent(), true);
+        $token    = trim($data['token'] ?? '');
+        $password = trim($data['password'] ?? '');
+
+        if (!$token || strlen($password) < 8) {
+            return $this->json(['error' => 'Token ou mot de passe invalide.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        $cacheKey = 'reset_token_' . $token;
+        $item     = $cache->getItem($cacheKey);
+
+        if (!$item->isHit()) {
+            return $this->json(['error' => 'Lien expiré ou invalide.'], Response::HTTP_BAD_REQUEST);
+        }
+
+        $userId = $item->get();
+        $user   = $userRepository->find($userId);
+
+        if (!$user) {
+            return $this->json(['error' => 'Utilisateur introuvable.'], Response::HTTP_NOT_FOUND);
+        }
+
+        $user->setPassword($this->passwordHasher->hashPassword($user, $password));
+        $this->entityManager->flush();
+        $cache->deleteItem($cacheKey);
+
+        return $this->json(['message' => 'Mot de passe mis à jour avec succès.']);
     }
 
     private function generateSlug(string $name): string
