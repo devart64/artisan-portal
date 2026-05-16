@@ -1,0 +1,121 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop, "claude/*"]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  # ── Backend PHP ─────────────────────────────────────────────────────────────
+  backend:
+    name: Backend (PHP 8.3)
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: artisan_portal_test
+          POSTGRES_USER: artisan
+          POSTGRES_PASSWORD: artisan
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo_pgsql, intl, zip, mbstring, apcu
+          coverage: none
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: backend/vendor
+          key: composer-${{ hashFiles('backend/composer.lock') }}
+          restore-keys: composer-
+
+      - name: Install dependencies
+        working-directory: backend
+        run: composer install --no-interaction --prefer-dist --no-scripts
+
+      - name: Generate JWT keys
+        working-directory: backend
+        run: |
+          mkdir -p config/jwt
+          openssl genrsa -out config/jwt/private.pem 2048
+          openssl rsa -in config/jwt/private.pem -pubout -out config/jwt/public.pem
+        env:
+          JWT_PASSPHRASE: ci_passphrase
+
+      - name: Run PHPUnit tests
+        working-directory: backend
+        run: php bin/phpunit --testdox
+        env:
+          APP_ENV: test
+          APP_SECRET: ci_secret
+          DATABASE_URL: postgresql://artisan:artisan@localhost:5432/artisan_portal_test?serverVersion=16
+          JWT_SECRET_KEY: config/jwt/private.pem
+          JWT_PUBLIC_KEY: config/jwt/public.pem
+          JWT_PASSPHRASE: ci_passphrase
+          MAILER_DSN: null://null
+          AWS_ACCESS_KEY_ID: dummy
+          AWS_SECRET_ACCESS_KEY: dummy
+          AWS_REGION: eu-west-3
+          AWS_BUCKET: dummy-bucket
+          STRIPE_SECRET_KEY: dummy
+          STRIPE_WEBHOOK_SECRET: dummy
+          TWILIO_ACCOUNT_SID: dummy
+          TWILIO_AUTH_TOKEN: dummy
+          TWILIO_PHONE_NUMBER: "+33600000000"
+          FRONTEND_URL: http://localhost:3000
+          CORS_ALLOW_ORIGIN: "http://localhost:3000"
+
+  # ── Frontend Next.js ────────────────────────────────────────────────────────
+  frontend:
+    name: Frontend (Node 20)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Enable pnpm
+        run: corepack enable && corepack prepare pnpm@latest --activate
+
+      - name: Cache pnpm
+        uses: actions/cache@v4
+        with:
+          path: frontend/.pnpm-store
+          key: pnpm-${{ hashFiles('frontend/pnpm-lock.yaml') }}
+          restore-keys: pnpm-
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile 2>/dev/null || pnpm install
+
+      - name: Type check
+        working-directory: frontend
+        run: pnpm typecheck
+
+      - name: Lint
+        working-directory: frontend
+        run: pnpm lint
+
+      - name: Build
+        working-directory: frontend
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000
