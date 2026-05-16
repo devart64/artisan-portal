@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { config } from '../config.js'
 import { portalClient } from '../portalClient.js'
+import { withRetry } from '../utils.js'
 import type { Lead, ProspectQuery, AgentResult } from '../types.js'
 
 const client = new Anthropic({ apiKey: config.anthropicApiKey })
@@ -15,7 +16,7 @@ export async function runProspector(query: ProspectQuery): Promise<AgentResult<L
   const count = query.count ?? 5
 
   try {
-    const message = await client.messages.create({
+    const message = await withRetry(() => client.messages.create({
       model: config.model,
       max_tokens: 2048,
       system: SYSTEM,
@@ -25,7 +26,7 @@ export async function runProspector(query: ProspectQuery): Promise<AgentResult<L
 Champs obligatoires : name (Prénom Nom), email (pro réaliste), phone (format +336...), trade, city.
 Source : "prospection_automatique".`,
       }],
-    })
+    }))
 
     const text = message.content[0].type === 'text' ? message.content[0].text : ''
     const jsonMatch = text.match(/\[[\s\S]*\]/)

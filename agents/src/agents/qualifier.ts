@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { config } from '../config.js'
 import { portalClient } from '../portalClient.js'
+import { withRetry } from '../utils.js'
 import type { Lead, QualificationResult, AgentResult } from '../types.js'
 
 const client = new Anthropic({ apiKey: config.anthropicApiKey })
@@ -18,7 +19,7 @@ Retourne UNIQUEMENT un JSON : { "score": number, "reasoning": string, "recommend
 
 export async function runQualifier(lead: Lead): Promise<AgentResult<QualificationResult>> {
   try {
-    const message = await client.messages.create({
+    const message = await withRetry(() => client.messages.create({
       model: config.model,
       max_tokens: 512,
       system: SYSTEM,
@@ -32,7 +33,7 @@ Email : ${lead.email ?? 'non renseigné'}
 Téléphone : ${lead.phone ?? 'non renseigné'}
 Source : ${lead.source ?? 'inconnue'}`,
       }],
-    })
+    }))
 
     const text = message.content[0].type === 'text' ? message.content[0].text : '{}'
     const jsonMatch = text.match(/\{[\s\S]*\}/)

@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { config } from '../config.js'
+import { withRetry } from '../utils.js'
 import type { Lead, OutreachContent, AgentResult } from '../types.js'
 
 const client = new Anthropic({ apiKey: config.anthropicApiKey })
@@ -13,7 +14,7 @@ Retourne UNIQUEMENT un JSON : { "subject": string, "emailBody": string, "smsText
 
 export async function runCopywriter(lead: Lead): Promise<AgentResult<OutreachContent>> {
   try {
-    const message = await client.messages.create({
+    const message = await withRetry(() => client.messages.create({
       model: config.model,
       max_tokens: 1024,
       system: SYSTEM,
@@ -27,7 +28,7 @@ Ville : ${lead.city ?? 'France'}
 Personnalise pour ce métier spécifique. Email max 150 mots. SMS max 160 caractères.
 followUpDelay = nombre de jours avant relance (3 à 7).`,
       }],
-    })
+    }))
 
     const text = message.content[0].type === 'text' ? message.content[0].text : '{}'
     const jsonMatch = text.match(/\{[\s\S]*\}/)

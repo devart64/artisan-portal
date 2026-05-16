@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /chantiers
+Disallow: /clients
+Disallow: /settings
+Disallow: /api/
+
+Sitemap: https://artisan-portal.fr/sitemap.xml

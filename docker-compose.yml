@@ -61,6 +61,11 @@ services:
       postgres:
         condition: service_healthy
     entrypoint: ["/app/docker/entrypoint.sh"]
+    healthcheck:
+      test: ["CMD-SHELL", "php-fpm -t"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # ── Nginx (reverse proxy Symfony) ────────────────────────────────────────────
   nginx:
@@ -89,7 +94,15 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:8000
     depends_on:
-      - nginx
+      nginx:
+        condition: service_started
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ || exit 1"]
+      interval: 15s
+      timeout: 10s
+      retries: 5
 
 volumes:
   postgres_data:

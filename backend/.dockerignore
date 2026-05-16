@@ -1,8 +1,9 @@
 vendor/
-var/
-.git/
+var/cache/
+var/log/
+config/jwt/
 .env
 .env.local
-config/jwt/
-*.md
+.env.test
 tests/
+.git/

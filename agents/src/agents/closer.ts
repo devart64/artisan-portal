@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { config } from '../config.js'
 import { portalClient } from '../portalClient.js'
+import { withRetry } from '../utils.js'
 import type { Lead, AgentResult } from '../types.js'
 
 const client = new Anthropic({ apiKey: config.anthropicApiKey })
@@ -17,7 +18,7 @@ Retourne UNIQUEMENT un JSON : { "response": string, "suggestTrial": boolean, "tr
 
 export async function runCloser(lead: Lead, objection: string): Promise<AgentResult<{ response: string; suggestTrial: boolean; trialLink: string }>> {
   try {
-    const message = await client.messages.create({
+    const message = await withRetry(() => client.messages.create({
       model: config.model,
       max_tokens: 512,
       system: SYSTEM,
@@ -28,7 +29,7 @@ Objection reçue : "${objection}"
 
 Génère une réponse adaptée. trialLink = "https://artisan-portal.fr/essai?ref=${lead.id ?? 'agent'}"`,
       }],
-    })
+    }))
 
     const text = message.content[0].type === 'text' ? message.content[0].text : '{}'
     const jsonMatch = text.match(/\{[\s\S]*\}/)

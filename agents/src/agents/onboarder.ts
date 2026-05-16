@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk'
 import { config } from '../config.js'
 import { portalClient } from '../portalClient.js'
+import { withRetry } from '../utils.js'
 import type { Lead, AgentResult } from '../types.js'
 
 const client = new Anthropic({ apiKey: config.anthropicApiKey })
@@ -17,7 +18,7 @@ Retourne UNIQUEMENT un JSON : { "day": number, "subject": string, "body": string
 
 export async function runOnboarder(lead: Lead, dayNumber: 1 | 3 | 7): Promise<AgentResult<{ day: number; subject: string; body: string; nextAction: string }>> {
   try {
-    const message = await client.messages.create({
+    const message = await withRetry(() => client.messages.create({
       model: config.model,
       max_tokens: 512,
       system: SYSTEM,
@@ -26,7 +27,7 @@ export async function runOnboarder(lead: Lead, dayNumber: 1 | 3 | 7): Promise<Ag
         content: `Nouvel inscrit : ${lead.name} (${lead.trade})
 Génère le message d'onboarding du Jour ${dayNumber}.`,
       }],
-    })
+    }))
 
     const text = message.content[0].type === 'text' ? message.content[0].text : '{}'
     const jsonMatch = text.match(/\{[\s\S]*\}/)
