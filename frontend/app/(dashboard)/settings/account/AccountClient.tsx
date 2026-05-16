@@ -4,6 +4,7 @@ import { useState, useTransition } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { exportAccountData, deleteAccount } from './actions'
+import { PushNotifSetup } from '@/components/shared/PushNotifSetup'
 
 export function AccountClient() {
   const [confirm, setConfirm]         = useState('')
@@ -37,6 +38,13 @@ export function AccountClient() {
 
   return (
     <div className="space-y-8">
+      <div className="border rounded-lg p-6 bg-card">
+        <h2 className="font-semibold mb-1">Notifications push</h2>
+        <p className="text-muted-foreground text-sm mb-4">
+          Recevez des alertes sur votre navigateur quand un document est signé ou un message reçu.
+        </p>
+        <PushNotifSetup />
+      </div>
       <div className="border rounded-lg p-6 bg-card">
         <h2 className="font-semibold mb-1">Exporter mes données</h2>
         <p className="text-muted-foreground text-sm mb-4">Téléchargez toutes vos données au format JSON (RGPD).</p>
