@@ -61,7 +61,7 @@ export default function SettingsPage() {
     setIsSaving(true)
     try {
       await apiFetch('/api/settings', {
-        method: 'POST',
+        method: 'PATCH',
         body: JSON.stringify(parsed.data),
       })
       toast.success('Paramètres mis à jour')
