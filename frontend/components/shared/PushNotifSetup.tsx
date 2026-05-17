@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Bell, BellOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { apiFetch } from '@/lib/api'
 
 export function PushNotifSetup() {
   const [supported, setSupported]   = useState(false)
@@ -28,10 +29,7 @@ export function PushNotifSetup() {
     setLoading(true)
     try {
       // Récupérer la clé VAPID publique
-      const keyRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/push/vapid-public-key`, {
-        credentials: 'include',
-      })
-      const { publicKey } = await keyRes.json()
+      const { publicKey } = await apiFetch<{ publicKey: string }>('/api/push/vapid-public-key')
 
       const reg = await navigator.serviceWorker.ready
       const sub = await reg.pushManager.subscribe({
@@ -40,10 +38,8 @@ export function PushNotifSetup() {
       })
 
       // Envoyer la subscription au backend
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/push/subscribe`, {
+      await apiFetch('/api/push/subscribe', {
         method:      'POST',
-        credentials: 'include',
-        headers:     { 'Content-Type': 'application/json' },
         body:        JSON.stringify(sub.toJSON()),
       })
 
@@ -62,10 +58,8 @@ export function PushNotifSetup() {
       const reg = await navigator.serviceWorker.ready
       const sub = await reg.pushManager.getSubscription()
       if (sub) {
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/push/unsubscribe`, {
+        await apiFetch('/api/push/unsubscribe', {
           method:      'POST',
-          credentials: 'include',
-          headers:     { 'Content-Type': 'application/json' },
           body:        JSON.stringify({ endpoint: sub.endpoint }),
         })
         await sub.unsubscribe()
