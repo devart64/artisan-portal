@@ -10,6 +10,7 @@ frontend/.env.local
 frontend/.next/
 frontend/node_modules/
 frontend/out/
+frontend/.pnpm-store/v3/files/
 
 # OS
 .DS_Store

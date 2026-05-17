@@ -7,6 +7,9 @@ until php -r "new PDO('pgsql:host=postgres;dbname=${POSTGRES_DB:-artisan_portal}
 done
 echo "✅ PostgreSQL ready"
 
+echo "📦 Ensuring dependencies are up to date..."
+composer install --no-interaction --no-scripts --quiet
+
 echo "🔑 Generating JWT keys (if missing)..."
 php bin/console lexik:jwt:generate-keypair --skip-if-exists --quiet
 

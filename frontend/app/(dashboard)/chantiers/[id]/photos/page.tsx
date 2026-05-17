@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { apiFetch } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 import type { Photo } from '@/lib/types'
-import { PhotoGalleryUploader } from './PhotoGalleryUploader'
+import { PhotoGalleryUploader } from '../PhotoGalleryUploader'
 
 interface PhotosPageProps {
   params: Promise<{ id: string }>

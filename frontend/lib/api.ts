@@ -1,6 +1,6 @@
 import { getJwt } from './auth'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'
+const API_URL = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8001'
 
 export class APIError extends Error {
   constructor(
@@ -29,7 +29,14 @@ export async function apiFetch<T>(
     const error = await res.json().catch(() => ({})) as { message?: string }
     throw new APIError(res.status, error.message ?? 'Erreur API')
   }
-  return res.json() as Promise<T>
+  const data = await res.json()
+  
+  // Unwrap API Platform JSON-LD collections
+  if (data && typeof data === 'object' && 'hydra:member' in data) {
+    return data['hydra:member'] as Promise<T>
+  }
+  
+  return data as Promise<T>
 }
 
 export async function apiUpload<T>(

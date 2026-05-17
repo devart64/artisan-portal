@@ -10,18 +10,25 @@
         "ext-ctype": "*",
         "ext-iconv": "*",
         "api-platform/core": "^3.3",
+        "aws/aws-sdk-php": "^3.316",
         "doctrine/doctrine-bundle": "^2.12",
         "doctrine/doctrine-migrations-bundle": "^3.3",
         "doctrine/orm": "^3.2",
-        "lexik/jwt-authentication-bundle": "^3.1",
-        "league/flysystem-bundle": "^3.3",
+        "dompdf/dompdf": "^3.0",
         "league/flysystem-aws-s3-v3": "^3.28",
-        "aws/aws-sdk-php": "^3.316",
+        "league/flysystem-bundle": "^3.3",
+        "lexik/jwt-authentication-bundle": "^3.1",
+        "minishlink/web-push": "^9.0",
+        "nelmio/cors-bundle": "^2.6",
+        "spomky-labs/otphp": "^11.0",
         "stripe/stripe-php": "^15.0",
         "symfony/console": "7.2.*",
         "symfony/dotenv": "7.2.*",
+        "symfony/expression-language": "7.2.*",
         "symfony/flex": "^2",
         "symfony/framework-bundle": "7.2.*",
+        "symfony/http-client": "7.2.*",
+        "symfony/lock": "7.2.*",
         "symfony/mailer": "7.2.*",
         "symfony/monolog-bundle": "^3.0",
         "symfony/rate-limiter": "7.2.*",
@@ -31,9 +38,6 @@
         "symfony/uid": "7.2.*",
         "symfony/validator": "7.2.*",
         "symfony/yaml": "7.2.*",
-        "dompdf/dompdf": "^3.0",
-        "minishlink/web-push": "^9.0",
-        "spomky-labs/otphp": "^11.0",
         "twilio/sdk": "^8.3"
     },
     "require-dev": {
@@ -53,7 +57,10 @@
             "symfony/flex": true,
             "symfony/runtime": true
         },
-        "sort-packages": true
+        "sort-packages": true,
+        "audit": {
+            "block-insecure": false
+        }
     },
     "autoload": {
         "psr-4": {

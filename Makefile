@@ -7,6 +7,7 @@
 # ── Couleurs ─────────────────────────────────────────────────────────────────
 BLUE  := \033[0;34m
 GREEN := \033[0;32m
+RED   := \033[0;31m
 RESET := \033[0m
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -14,20 +15,21 @@ RESET := \033[0m
 # ─────────────────────────────────────────────────────────────────────────────
 install:
 	@echo "$(BLUE)📦 Artisan Portal — Installation$(RESET)"
+	@docker info >/dev/null 2>&1 || (echo "$(RED)❌ Erreur : Docker n'est pas lancé. Veuillez démarrer Docker Desktop.$(RESET)" && exit 1)
 	@if [ ! -f backend/.env ]; then \
 		cp backend/.env.example backend/.env; \
 		echo "$(GREEN)✅ backend/.env créé depuis .env.example$(RESET)"; \
 	fi
-	@echo "$(BLUE)🐳 Build des images Docker...$(RESET)"
-	docker compose build --parallel
-	@echo "$(BLUE)🚀 Démarrage des services...$(RESET)"
-	docker compose up -d
-	@echo "$(BLUE)⏳ Attente de la disponibilité des services...$(RESET)"
-	docker compose exec backend bash -c 'until php -r "new PDO(getenv(\"DATABASE_URL\"));" 2>/dev/null; do sleep 1; done' 2>/dev/null || true
+	@echo "$(BLUE)🐳 Build et démarrage des services Docker...$(RESET)"
+	docker compose up -d --build
+	@echo "$(BLUE)⏳ Attente des services (cela peut prendre une minute)...$(RESET)"
+	@until docker compose exec backend php bin/console doctrine:query:sql "SELECT 1" >/dev/null 2>&1; do \
+		sleep 2; \
+	done
 	@echo "$(GREEN)✅ Installation terminée !$(RESET)"
 	@echo ""
-	@echo "  🌐 Frontend  → http://localhost:3000"
-	@echo "  🔌 API       → http://localhost:8000"
+	@echo "  🌐 Frontend  → http://localhost:3001"
+	@echo "  🔌 API       → http://localhost:8001"
 	@echo "  📧 Emails    → http://localhost:8025"
 	@echo ""
 	@echo "Commandes utiles :"

@@ -29,6 +29,8 @@ services:
                     key: '%env(AWS_ACCESS_KEY_ID)%'
                     secret: '%env(AWS_SECRET_ACCESS_KEY)%'
 
+    Aws\S3\S3Client: '@aws_s3_client'
+
     App\Service\FileUploadService:
         arguments:
             $awsRegion: '%env(AWS_REGION)%'
