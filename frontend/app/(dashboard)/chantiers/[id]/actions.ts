@@ -1,6 +1,6 @@
 'use server'
 import { revalidatePath } from 'next/cache'
-import { apiFetch } from '@/lib/api'
+import { apiFetch, apiUpload } from '@/lib/api'
 import type { Jalon } from '@/lib/types'
 
 export async function toggleJalon(
@@ -37,10 +37,10 @@ export async function deleteJalon(
   revalidatePath(`/chantiers/${chantierId}/planning`)
 }
 
-export async function sendMagicLink(chantierId: string): Promise<{ url: string }> {
-  return apiFetch<{ url: string }>('/api/auth/magic-link', {
+export async function sendMagicLink(chantierId: string, clientId: string): Promise<void> {
+  await apiFetch('/api/auth/magic-link', {
     method: 'POST',
-    body: JSON.stringify({ chantierId }),
+    body: JSON.stringify({ chantierId, clientId }),
   })
 }
 
@@ -48,14 +48,7 @@ export async function uploadDocument(
   chantierId: string,
   formData: FormData,
 ): Promise<void> {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'}/api/chantiers/${chantierId}/documents`,
-    {
-      method: 'POST',
-      body: formData,
-    },
-  )
-  if (!res.ok) throw new Error('Erreur lors du téléversement')
+  await apiUpload(`/api/chantiers/${chantierId}/documents`, formData)
   revalidatePath(`/chantiers/${chantierId}/documents`)
 }
 

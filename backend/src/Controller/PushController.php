@@ -48,6 +48,10 @@ class PushController extends AbstractController
         // Upsert : si l'endpoint existe déjà, ne pas dupliquer
         $existing = $this->subscriptionRepository->findOneBy(['endpoint' => $endpoint]);
         if ($existing !== null) {
+            if ($existing->getTenant()->getId()->equals($tenant->getId())) {
+                return $this->json(['ok' => true]);
+            }
+            // Endpoint appartient à un autre tenant — refuse silencieusement
             return $this->json(['ok' => true]);
         }
 

@@ -6,7 +6,8 @@ use App\Entity\Tenant;
 use App\Enum\LeadStatusEnum;
 use App\Repository\LeadRepository;
 use Doctrine\ORM\Mapping as ORM;
-use Symfony\Bridge\Doctrine\IdGenerator\UuidGenerator;
+use Symfony\Bridge\Doctrine\Types\UuidType;
+use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Serializer\Annotation\Groups;
 
 #[ORM\Entity(repositoryClass: LeadRepository::class)]
@@ -15,11 +16,11 @@ use Symfony\Component\Serializer\Annotation\Groups;
 class Lead
 {
     #[ORM\Id]
-    #[ORM\Column(type: 'uuid', unique: true)]
+    #[ORM\Column(type: UuidType::NAME, unique: true)]
     #[ORM\GeneratedValue(strategy: 'CUSTOM')]
-    #[ORM\CustomIdGenerator(class: UuidGenerator::class)]
+    #[ORM\CustomIdGenerator(class: 'doctrine.uuid_generator')]
     #[Groups(['lead:read'])]
-    private ?string $id = null;
+    private Uuid $id;
 
     #[ORM\Column(length: 255)]
     #[Groups(['lead:read', 'lead:write'])]
@@ -69,6 +70,11 @@ class Lead
     #[Groups(['lead:read'])]
     private \DateTimeImmutable $createdAt;
 
+    public function __construct()
+    {
+        $this->createdAt = new \DateTimeImmutable();
+    }
+
     #[ORM\PrePersist]
     public function initCreatedAt(): void
     {
@@ -78,7 +84,7 @@ class Lead
     public function getTenant(): Tenant { return $this->tenant; }
     public function setTenant(Tenant $tenant): static { $this->tenant = $tenant; return $this; }
 
-    public function getId(): ?string { return $this->id; }
+    public function getId(): Uuid { return $this->id; }
     public function getName(): string { return $this->name; }
     public function setName(string $name): static { $this->name = $name; return $this; }
     public function getEmail(): ?string { return $this->email; }

@@ -102,6 +102,11 @@ class TenantController extends AbstractController
             return $this->json(['error' => 'Format non supporté. Utilisez JPG, PNG, WebP ou SVG.'], Response::HTTP_BAD_REQUEST);
         }
 
+        $maxSize = 2 * 1024 * 1024; // 2MB
+        if ($file->getSize() > $maxSize) {
+            return $this->json(['error' => 'Logo trop volumineux. Maximum 2MB.'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
         // Delete old logo from S3 if present
         if ($tenant->getLogoUrl() !== null) {
             try {

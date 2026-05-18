@@ -205,6 +205,10 @@ class PortalController extends AbstractController
             return $this->json(['error' => 'Message content cannot be empty.'], Response::HTTP_BAD_REQUEST);
         }
 
+        if (strlen($content) > 5000) {
+            return $this->json(['error' => 'Message trop long (max 5000 caractères).'], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
         $chantier = $clientUser->getChantier();
         $client = $clientUser->getClient();
 
@@ -316,7 +320,7 @@ class PortalController extends AbstractController
         $this->notificationService->notifyDocumentSigned($document, $chantier, $signerName);
 
         return $this->json([
-            'id'         => $document->getId(),
+            'id'         => $document->getId()->toString(),
             'status'     => $document->getStatus()->value,
             'signedAt'   => $document->getSignedAt()?->format(\DateTimeInterface::ATOM),
             'signerName' => $document->getSignerName(),

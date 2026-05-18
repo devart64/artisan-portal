@@ -6,6 +6,7 @@ use App\Enum\LeadStatusEnum;
 use App\Repository\LeadRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
@@ -15,6 +16,8 @@ class WebhookLeadController extends AbstractController
     public function __construct(
         private LeadRepository $leads,
         private EntityManagerInterface $em,
+        #[Autowire('%env(FRONTEND_URL)%')]
+        private string $frontendUrl,
     ) {}
 
     #[Route('/interested/{id}', methods: ['GET'])]
@@ -28,8 +31,7 @@ class WebhookLeadController extends AbstractController
         }
 
         // Redirige vers la page d'inscription avec un paramètre UTM
-        $frontendUrl = $_ENV['FRONTEND_URL'] ?? 'http://localhost:3000';
-        return $this->redirect("{$frontendUrl}/register?utm_source=email&utm_campaign=agents_ia&ref={$id}");
+        return $this->redirect("{$this->frontendUrl}/register?utm_source=email&utm_campaign=agents_ia&ref={$id}");
     }
 
     #[Route('/unsubscribe/{id}', methods: ['GET'])]

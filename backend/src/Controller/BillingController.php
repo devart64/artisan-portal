@@ -8,6 +8,7 @@ use App\Service\PlanLimitChecker;
 use App\Service\StripeService;
 use App\Service\TenantContext;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
@@ -21,6 +22,14 @@ class BillingController extends AbstractController
         private TenantContext $tenantContext,
         private StripeService $stripeService,
         private PlanLimitChecker $planLimitChecker,
+        #[Autowire('%env(STRIPE_PRICE_STARTER)%')]
+        private string $stripePriceStarter,
+        #[Autowire('%env(STRIPE_PRICE_PRO)%')]
+        private string $stripePricePro,
+        #[Autowire('%env(STRIPE_PRICE_BUSINESS)%')]
+        private string $stripePriceBusiness,
+        #[Autowire('%env(FRONTEND_URL)%')]
+        private string $frontendUrl,
     ) {}
 
     #[Route('/billing', name: 'billing_info', methods: ['GET'])]
@@ -54,11 +63,11 @@ class BillingController extends AbstractController
     {
         $tenant = $this->tenantContext->getTenant();
 
-        // Map plan → Stripe price ID (depuis les variables d'env)
+        // Map plan → Stripe price ID (injectés via le constructeur)
         $planPrices = [
-            'starter'  => $_ENV['STRIPE_PRICE_STARTER']  ?? '',
-            'pro'      => $_ENV['STRIPE_PRICE_PRO']       ?? '',
-            'business' => $_ENV['STRIPE_PRICE_BUSINESS']  ?? '',
+            'starter'  => $this->stripePriceStarter,
+            'pro'      => $this->stripePricePro,
+            'business' => $this->stripePriceBusiness,
         ];
 
         $body    = json_decode($request->getContent() ?: '{}', true);
@@ -69,9 +78,8 @@ class BillingController extends AbstractController
             return $this->json(['error' => 'Plan invalide ou STRIPE_PRICE_' . strtoupper($plan) . ' non configuré'], 400);
         }
 
-        $frontendUrl = $_ENV['FRONTEND_URL'] ?? 'http://localhost:3000';
-        $successUrl  = "{$frontendUrl}/settings/billing?success=1";
-        $cancelUrl   = "{$frontendUrl}/settings/billing?canceled=1";
+        $successUrl  = "{$this->frontendUrl}/settings/billing?success=1";
+        $cancelUrl   = "{$this->frontendUrl}/settings/billing?canceled=1";
 
         try {
             $url = $this->stripeService->createCheckoutSession($tenant, $priceId, $successUrl, $cancelUrl);

@@ -85,6 +85,11 @@ class CorsSubscriber implements EventSubscriberInterface
         // Expose the Authorization header so the browser can read JWT responses.
         $response->headers->set('Access-Control-Expose-Headers', 'Authorization');
 
+        // Allow credentials (cookies) when the origin is specific
+        if ($origin !== '*') {
+            $response->headers->set('Access-Control-Allow-Credentials', 'true');
+        }
+
         // If the origin is specific (not a wildcard), we must add the Vary header
         // so CDNs and proxies cache the response per origin.
         if ($origin !== '*') {

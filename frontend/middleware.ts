@@ -27,17 +27,28 @@ function isPublic(pathname: string): boolean {
   return false
 }
 
+function isTokenExpired(token: string): boolean {
+  try {
+    const [, payload] = token.split('.')
+    if (!payload) return true
+    const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
+    if (!decoded.exp) return false
+    return Date.now() >= decoded.exp * 1000
+  } catch {
+    return true
+  }
+}
+
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   if (isPublic(pathname)) return NextResponse.next()
 
-  // Vérifier le JWT (cookie ou header)
   const token =
     request.cookies.get('jwt')?.value ||
     request.headers.get('authorization')?.replace('Bearer ', '')
 
-  if (!token) {
+  if (!token || isTokenExpired(token)) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('redirect', pathname)
     return NextResponse.redirect(loginUrl)

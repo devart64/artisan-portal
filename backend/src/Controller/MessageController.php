@@ -83,7 +83,7 @@ class MessageController extends AbstractController
         $message = new Message();
         $message->setChantier($chantier);
         $message->setSenderType('artisan');
-        $message->setSenderName($user->getEmail());
+        $message->setSenderName($user->getName() ?: $user->getEmail());
         $message->setContent($content);
         $message->setRead(false);
 

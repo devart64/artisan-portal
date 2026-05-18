@@ -39,12 +39,19 @@ class AuthController extends AbstractController
         private readonly StripeService $stripeService,
         #[Autowire(service: 'limiter.auth_login')]
         private readonly RateLimiterFactory $authLimiter,
+        #[Autowire('%env(FRONTEND_URL)%')]
+        private readonly string $frontendUrl,
     ) {}
 
     #[Route('/register', name: 'auth_register', methods: ['POST'])]
     public function register(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
+
+        $limiter = $this->authLimiter->create(($request->getClientIp() ?? 'unknown') . '_register');
+        if (!$limiter->consume(1)->isAccepted()) {
+            return $this->json(['error' => 'Trop de tentatives. Réessayez dans 15 minutes.'], Response::HTTP_TOO_MANY_REQUESTS);
+        }
 
         if (!is_array($data)) {
             return $this->json(['error' => 'Invalid JSON body.'], Response::HTTP_BAD_REQUEST);
@@ -173,8 +180,7 @@ class AuthController extends AbstractController
             $item->expiresAfter(3600); // 1 heure
             $cache->save($item);
 
-            $frontendUrl = $_ENV['FRONTEND_URL'] ?? 'http://localhost:3000';
-            $resetUrl    = "{$frontendUrl}/reset-password?token={$token}";
+            $resetUrl    = "{$this->frontendUrl}/reset-password?token={$token}";
 
             $emailMessage = (new Email())
                 ->from(new Address('noreply@artisan-portal.fr', 'Artisan Portal'))
