@@ -11,22 +11,29 @@ use Minishlink\WebPush\VAPID;
 
 class PushService
 {
-    private WebPush $webPush;
+    private ?WebPush $webPush = null;
 
     public function __construct(
         private readonly PushSubscriptionRepository $subscriptionRepository,
         private readonly string $vapidPublicKey,
         private readonly string $vapidPrivateKey,
         private readonly string $vapidSubject,
-    ) {
-        $auth = [
+    ) {}
+
+    /**
+     * Lazily build the WebPush client. Deferring construction avoids crashing
+     * when the VAPID keys are placeholders/absent (tests, or dev setups without
+     * push configured), since WebPush decodes the keys eagerly in its constructor.
+     */
+    private function webPush(): WebPush
+    {
+        return $this->webPush ??= new WebPush([
             'VAPID' => [
                 'subject'    => $this->vapidSubject,
                 'publicKey'  => $this->vapidPublicKey,
                 'privateKey' => $this->vapidPrivateKey,
             ],
-        ];
-        $this->webPush = new WebPush($auth);
+        ]);
     }
 
     public function sendToTenant(Tenant $tenant, string $title, string $body, ?string $url = null): void
@@ -53,13 +60,13 @@ class PushService
                         'auth'   => $sub->getAuth(),
                     ],
                 ]);
-                $this->webPush->queueNotification($subscription, $payload);
+                $this->webPush()->queueNotification($subscription, $payload);
             } catch (\Throwable) {
                 // Subscription invalide — ignorer
             }
         }
 
-        foreach ($this->webPush->flush() as $report) {
+        foreach ($this->webPush()->flush() as $report) {
             // Log les échecs si nécessaire
         }
     }

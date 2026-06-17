@@ -1,4 +1,11 @@
 parameters:
+    # Default allowed CORS origin. Override via the CORS_ALLOW_ORIGIN env var
+    # (e.g. https://app.artisan-portal.fr in production). Wildcard suits dev.
+    env(CORS_ALLOW_ORIGIN): '*'
+    # Default lock store used by the rate limiters. 'flock' uses local files,
+    # which is fine for a single node; use a shared store (redis/postgres) when
+    # running multiple instances.
+    env(LOCK_DSN): 'flock'
     frontend_url: '%env(FRONTEND_URL)%'
     aws_region: '%env(AWS_REGION)%'
     aws_bucket: '%env(AWS_BUCKET)%'
@@ -74,7 +81,7 @@ services:
 
     App\EventSubscriber\CorsSubscriber:
         arguments:
-            $corsAllowOrigin: '%env(default::CORS_ALLOW_ORIGIN)%'
+            $corsAllowOrigin: '%env(CORS_ALLOW_ORIGIN)%'
         tags:
             - { name: kernel.event_subscriber }
 

@@ -24,3 +24,10 @@ when@test:
         test: true
         session:
             storage_factory_id: session.storage.factory.mock_file
+        cache:
+            pools:
+                # Back the rate-limiter store with an in-memory adapter during tests
+                # so limiter counters don't persist across requests/test cases.
+                # Prevents the auth limiter from tripping 429 over a full run.
+                cache.rate_limiter:
+                    adapter: cache.adapter.array

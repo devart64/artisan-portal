@@ -16,7 +16,7 @@ use Stripe\Webhook;
 
 class StripeService
 {
-    private readonly StripeClient $stripe;
+    private ?StripeClient $stripe = null;
 
     public function __construct(
         private readonly EntityManagerInterface $entityManager,
@@ -26,8 +26,16 @@ class StripeService
         private readonly string $stripePriceStarter,
         private readonly string $stripePricePro,
         private readonly string $stripePriceBusiness,
-    ) {
-        $this->stripe = new StripeClient($this->stripeSecretKey);
+    ) {}
+
+    /**
+     * Lazily build the Stripe client. Deferring instantiation avoids crashing
+     * when the secret key is absent (tests, or dev setups without Stripe),
+     * since StripeClient rejects an empty key in its constructor.
+     */
+    private function stripe(): StripeClient
+    {
+        return $this->stripe ??= new StripeClient($this->stripeSecretKey);
     }
 
     /**
@@ -35,7 +43,7 @@ class StripeService
      */
     public function createCustomer(Tenant $tenant): string
     {
-        $customer = $this->stripe->customers->create([
+        $customer = $this->stripe()->customers->create([
             'name'     => $tenant->getName(),
             'metadata' => [
                 'tenant_id'   => $tenant->getId()->toString(),
@@ -51,7 +59,7 @@ class StripeService
      */
     public function createSubscription(string $customerId, string $priceId): void
     {
-        $this->stripe->subscriptions->create([
+        $this->stripe()->subscriptions->create([
             'customer' => $customerId,
             'items'    => [
                 ['price' => $priceId],
@@ -89,7 +97,7 @@ class StripeService
             'allow_promotion_codes' => true,
         ];
 
-        $session = $this->stripe->checkout->sessions->create($params);
+        $session = $this->stripe()->checkout->sessions->create($params);
 
         return $session->url;
     }
@@ -99,7 +107,7 @@ class StripeService
      */
     public function getPortalUrl(string $customerId): string
     {
-        $session = $this->stripe->billingPortal->sessions->create([
+        $session = $this->stripe()->billingPortal->sessions->create([
             'customer'   => $customerId,
             'return_url' => 'https://app.artisan-portal.fr/settings/billing',
         ]);
