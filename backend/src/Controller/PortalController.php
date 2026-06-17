@@ -52,7 +52,19 @@ class PortalController extends AbstractController
         $tenant = $clientUser->getTenant();
         $client = $clientUser->getClient();
 
+        // Progression = part des jalons terminés (0 quand il n'y a pas de jalon).
+        $jalons = $this->jalonRepository->findByChantier($chantier);
+        $total = count($jalons);
+        $done = 0;
+        foreach ($jalons as $jalon) {
+            if ($jalon->isDone()) {
+                $done++;
+            }
+        }
+        $jalonsProgress = $total > 0 ? (int) round($done / $total * 100) : 0;
+
         return $this->json([
+            'jalonsProgress' => $jalonsProgress,
             'tenant'   => [
                 'name'       => $tenant->getName(),
                 'logoUrl'    => $tenant->getLogoUrl(),

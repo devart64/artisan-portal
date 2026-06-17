@@ -11,7 +11,7 @@ interface PortalPlanningPageProps {
 
 export default async function PortalPlanningPage({ params }: PortalPlanningPageProps) {
   const { token } = await params
-  const jalons = await portalFetch<Jalon[]>(token, '/jalons')
+  const jalons = await portalFetch<Jalon[]>(token, '/planning')
 
   return (
     <div className="space-y-6">

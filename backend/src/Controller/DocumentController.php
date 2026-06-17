@@ -111,6 +111,33 @@ class DocumentController extends AbstractController
     }
 
     /**
+     * GET /api/documents
+     * List the tenant's most recent documents (used by the dashboard).
+     */
+    #[Route('/documents', name: 'document_list', methods: ['GET'])]
+    public function list(Request $request): JsonResponse
+    {
+        $tenant = $this->tenantContext->getTenant();
+
+        $limit = (int) $request->query->get('limit', 5);
+        $limit = max(1, min($limit, 50));
+
+        $documents = $this->documentRepository->findRecentForTenant($tenant, $limit);
+
+        $data = array_map(fn (Document $document) => [
+            'id'         => $document->getId()->toString(),
+            'label'      => $document->getLabel(),
+            'type'       => $document->getType()->value,
+            'typeLabel'  => $document->getType()->label(),
+            'status'     => $document->getStatus()?->value,
+            'createdAt'  => $document->getCreatedAt()->format(\DateTimeInterface::ATOM),
+            'chantierId' => $document->getChantier()->getId()->toString(),
+        ], $documents);
+
+        return $this->json($data);
+    }
+
+    /**
      * GET /api/documents/{id}/download
      * Get a pre-signed S3 URL for downloading the document.
      */
