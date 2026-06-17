@@ -22,6 +22,8 @@ const uploadSchema = z.object({
 
 interface DocumentUploaderProps {
   chantierId: string
+  /** Authenticated server action that uploads one document (field "file" + label/type). */
+  action: (chantierId: string, formData: FormData) => Promise<void>
   onSuccess?: () => void
 }
 
@@ -32,7 +34,7 @@ const typeLabels: Record<DocumentType, string> = {
   autre: 'Autre',
 }
 
-export function DocumentUploader({ chantierId, onSuccess }: DocumentUploaderProps) {
+export function DocumentUploader({ chantierId, action, onSuccess }: DocumentUploaderProps) {
   const [label, setLabel] = useState('')
   const [type, setType] = useState<DocumentType>('autre')
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -51,18 +53,14 @@ export function DocumentUploader({ chantierId, onSuccess }: DocumentUploaderProp
       throw new Error('Veuillez remplir tous les champs requis')
     }
 
-    const formData = new FormData()
-    formData.append('label', label)
-    formData.append('type', type)
-    files.forEach((file) => formData.append('file', file))
-
-    const res = await fetch(`/api/chantiers/${chantierId}/documents`, {
-      method: 'POST',
-      body: formData,
-    })
-
-    if (!res.ok) {
-      throw new Error('Erreur lors du téléversement')
+    // One document per request (backend takes a single "file"), via an
+    // authenticated server action so the JWT is attached.
+    for (const file of files) {
+      const formData = new FormData()
+      formData.append('label', label)
+      formData.append('type', type)
+      formData.append('file', file)
+      await action(chantierId, formData)
     }
 
     toast.success('Document ajouté avec succès')
@@ -76,7 +74,7 @@ export function DocumentUploader({ chantierId, onSuccess }: DocumentUploaderProp
     <div className="space-y-4 rounded-lg border p-4">
       <h3 className="font-medium text-gray-900">Ajouter un document</h3>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="doc-label">Libellé *</Label>
           <Input

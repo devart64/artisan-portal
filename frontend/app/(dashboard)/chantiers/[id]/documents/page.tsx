@@ -3,6 +3,7 @@ import { Download, FileText, ArrowLeft, FileDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DocumentUploader } from '@/components/chantier/DocumentUploader'
+import { uploadDocument } from '../actions'
 import { apiFetch } from '@/lib/api'
 import { formatDate } from '@/lib/utils'
 import type { Document, DocumentType, DocumentStatus } from '@/lib/types'
@@ -27,6 +28,7 @@ const statusConfig: Record<
   refuse: { label: 'Refusé', className: 'bg-red-100 text-red-700' },
   paye: { label: 'Payé', className: 'bg-blue-100 text-blue-700' },
   en_retard: { label: 'En retard', className: 'bg-orange-100 text-orange-700' },
+  signe: { label: 'Signé', className: 'bg-emerald-100 text-emerald-700' },
 }
 
 async function getDocuments(chantierId: string): Promise<Document[]> {
@@ -54,7 +56,7 @@ export default async function DocumentsPage({ params }: DocumentsPageProps) {
       </div>
 
       {/* Upload */}
-      <DocumentUploader chantierId={id} />
+      <DocumentUploader chantierId={id} action={uploadDocument} />
 
       {/* Document list */}
       {documents.length === 0 ? (
