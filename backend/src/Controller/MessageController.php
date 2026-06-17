@@ -15,7 +15,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-#[Route('/api/messages')]
+#[Route('/api')]
 #[IsGranted('ROLE_USER')]
 class MessageController extends AbstractController
 {
@@ -32,7 +32,7 @@ class MessageController extends AbstractController
      * Aggregates messages across all chantiers of the current tenant.
      * Used by the dashboard to show unread client messages.
      */
-    #[Route('', name: 'messages_list', methods: ['GET'])]
+    #[Route('/messages', name: 'messages_list', methods: ['GET'])]
     public function list(Request $request): JsonResponse
     {
         $tenant = $this->tenantContext->getTenant();
@@ -52,6 +52,35 @@ class MessageController extends AbstractController
             'read'          => $msg->isRead(),
             'createdAt'     => $msg->getCreatedAt()->format(\DateTimeInterface::ATOM),
         ], $rows);
+
+        return $this->json($messages);
+    }
+
+    /**
+     * GET /api/chantiers/{id}/messages
+     *
+     * Lists the message thread for a single chantier (artisan dashboard view).
+     * The chantier must belong to the current tenant (enforced via 'view' voter).
+     */
+    #[Route('/chantiers/{id}/messages', name: 'chantier_messages_list', methods: ['GET'])]
+    public function listForChantier(string $id): JsonResponse
+    {
+        $chantier = $this->em->find(Chantier::class, $id);
+        if (!$chantier) {
+            return $this->json(['error' => 'Chantier introuvable'], 404);
+        }
+
+        $this->denyAccessUnlessGranted('view', $chantier);
+
+        $messages = array_map(static fn (Message $msg) => [
+            'id'         => $msg->getId()->toString(),
+            'chantierId' => $msg->getChantier()->getId()->toString(),
+            'senderType' => $msg->getSenderType(),
+            'senderName' => $msg->getSenderName(),
+            'content'    => $msg->getContent(),
+            'read'       => $msg->isRead(),
+            'createdAt'  => $msg->getCreatedAt()->format(\DateTimeInterface::ATOM),
+        ], $this->messageRepository->findByChantier($chantier));
 
         return $this->json($messages);
     }
