@@ -12,6 +12,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { LogOut, User } from 'lucide-react'
 import { NotificationBell } from '@/components/shared/NotificationBell'
+import { MobileNav } from '@/components/shared/MobileNav'
 
 const pageTitles: Record<string, string> = {
   '/dashboard': 'Tableau de bord',
@@ -41,8 +42,11 @@ export function Header() {
   const title = getPageTitle(pathname)
 
   return (
-    <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-white px-6">
-      <h1 className="text-xl font-semibold text-gray-900">{title}</h1>
+    <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b bg-white px-4 lg:px-6">
+      <div className="flex min-w-0 items-center gap-2">
+        <MobileNav />
+        <h1 className="truncate text-lg font-semibold text-gray-900 lg:text-xl">{title}</h1>
+      </div>
       <div className="flex items-center gap-2">
         <NotificationBell />
         <DropdownMenu>

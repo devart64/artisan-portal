@@ -52,6 +52,15 @@ export async function uploadDocument(
   revalidatePath(`/chantiers/${chantierId}/documents`)
 }
 
+export async function uploadPhoto(
+  chantierId: string,
+  formData: FormData,
+): Promise<void> {
+  // The backend photo endpoint accepts one file (field "file") per request.
+  await apiUpload(`/api/chantiers/${chantierId}/photos`, formData)
+  revalidatePath(`/chantiers/${chantierId}/photos`)
+}
+
 export async function sendMessage(
   chantierId: string,
   content: string,

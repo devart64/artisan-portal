@@ -1,6 +1,7 @@
 'use client'
 import { toast } from 'sonner'
 import { DropZone } from '@/components/shared/DropZone'
+import { uploadPhoto } from './actions'
 
 interface PhotoGalleryUploaderProps {
   chantierId: string
@@ -8,21 +9,23 @@ interface PhotoGalleryUploaderProps {
 
 export function PhotoGalleryUploader({ chantierId }: PhotoGalleryUploaderProps) {
   const handleUpload = async (files: File[]) => {
-    const formData = new FormData()
-    files.forEach((file) => formData.append('photos', file))
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000'}/api/chantiers/${chantierId}/photos`,
-      { method: 'POST', body: formData },
+    // Upload each photo individually (the backend takes one "file" per request),
+    // going through an authenticated server action so the JWT is attached.
+    for (const file of files) {
+      const formData = new FormData()
+      formData.append('file', file)
+      await uploadPhoto(chantierId, formData)
+    }
+    toast.success(
+      files.length > 1 ? 'Photos ajoutées avec succès' : 'Photo ajoutée avec succès',
     )
-    if (!res.ok) throw new Error('Erreur lors du téléversement')
-    toast.success('Photos ajoutées avec succès')
   }
 
   return (
     <DropZone
       onUpload={handleUpload}
       multiple
-      label="Glissez vos photos ici"
+      label="Prenez une photo ou sélectionnez-en depuis votre téléphone"
       accept={{ 'image/*': ['.jpg', '.jpeg', '.png', '.webp'] }}
     />
   )
